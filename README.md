@@ -1,4 +1,4 @@
-# space_robot_parameter_estimation
+# Space_Robot_Parameter_Estimation
 
 # Generating test cases
 - The files present in config_files have to pasted in ReDySim_Floating_Base/ForDyn
