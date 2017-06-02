@@ -4,7 +4,6 @@ function [] = animate()
 tskip=0.05;
 disp('------------------------------------------------------------------');
 disp('Animating the simulation data');
-
 load timevar.dat;
 load statevar.dat;
 T=timevar;
