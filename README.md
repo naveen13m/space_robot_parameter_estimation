@@ -11,7 +11,7 @@ C1, C2, C3: Linear momentum along x,y, and z axes respectively<br />
 C4, C5, C6: Angular momentum along x,y, and z axes respectively<br />
 
 - statvar.dat: Contains the kinematic data of the base and the joints<br />
-Suppose there are n joints on all the arms and links in the robot, then<br />
+For n joints on the arms of the robot, then<br />
 C1, C2, C3: x, y, and z positions of the base<br />
 C4, C5, C6: Euler angles of the base (ZXY euelr angle convention)<br />
 C7 to C(6+n): Joint position<br />
