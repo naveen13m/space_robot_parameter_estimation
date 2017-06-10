@@ -12,10 +12,10 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
     arm_initial_link_index = find(parent_link_index == 1) - 1;
     num_arms = 0;
     base_arm_joint_position_sensor_frame = zeros(3, 2);
-    for curr_arm_intial_link_index = arm_initial_link_index
+    for curr_arm_initial_link_index = arm_initial_link_index
         num_arms = num_arms + 1;
         base_arm_joint_position_base_frame = ...
-            [link_length_DH(curr_arm_intial_link_index + 1), 0, 0]';
+            [link_length_DH(curr_arm_initial_link_index + 1), 0, 0]';
         base_arm_joint_position_sensor_frame(:, num_arms) = ...
             base_arm_joint_position_base_frame ...
             - base_sensor_position_base_frame;
@@ -46,8 +46,8 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
             joint_angle = joint_ang_position(curr_instant, curr_link);
             rot_mat_link_prev_link_frame(:, :, curr_instant,...
                 curr_link) = [cos(joint_angle) -sin(joint_angle) 0
-                                 sin(joint_angle)  cos(joint_angle) 0
-                                 0                 0                1];
+                              sin(joint_angle)  cos(joint_angle) 0
+                              0                 0                1];
         end
     end
     
