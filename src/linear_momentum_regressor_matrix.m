@@ -1,17 +1,16 @@
 function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
-    base_sensor_position_base_frame, statevar)
+                                base_sensor_position_base_frame, statevar)
     
     % Load robot structural data
     curr_dir = pwd;
     cd(strcat('../test_case_data', robot_make, '/config_files'));
-    [num_links_with_base, ~, ~, link_length_DH, ~, parent_link_index, ~, ~, ~, ... 
-        link_length, ~] = inputs();
+    [num_links_with_base, ~, ~, link_length_DH, ~, parent_link_index, ...
+        ~, ~, ~, link_length, ~] = inputs();
     cd(curr_dir);
     
     % Data assignment
     arm_initial_link_index = find(parent_link_index == 1) - 1;
     num_arms = 0;
-    base_arm_joint_position_sensor_frame = zeros(3, 2);
     for curr_arm_initial_link_index = arm_initial_link_index
         num_arms = num_arms + 1;
         base_arm_joint_position_base_frame = ...
@@ -30,16 +29,18 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
         12 + num_links_without_base);
     rev_joint_ang_velocity = statevar(:, 13 + num_links_without_base :...
         12 + 2 * num_links_without_base);
-    num_instants = size(statevar, 1);
-    joint_ang_position_prev_joint_frame = [base_sensor_orientation(:,1), rev_joint_ang_position];
-    joint_ang_velocity_prev_joint_frame = [base_sensor_ang_velocity(:, 1), rev_joint_ang_velocity];
+    num_instants = length(statevar);
+    joint_ang_position_prev_joint_frame = [base_sensor_orientation(:,1), ...
+        rev_joint_ang_position];
+    joint_ang_velocity_prev_joint_frame = [base_sensor_ang_velocity(:, 1), ...
+        rev_joint_ang_velocity];
     
     % Compute rotation matrix
     rot_mat_link_prev_link_frame = ...
         zeros(3, 3, num_instants, num_links_with_base);
     rot_mat_link = zeros(3, 3, num_instants, num_links_with_base);
-    for curr_link = 1 : num_links_with_base
-        for curr_instant = 1 : num_instants
+    for curr_instant = 1 : num_instants
+        for curr_link = 1 : num_links_with_base
             joint_angle = joint_ang_position_prev_joint_frame(curr_instant, curr_link);
             rot_mat_link_prev_link_frame(:, :, curr_instant,...
                 curr_link) = [cos(joint_angle) -sin(joint_angle) 0
@@ -61,7 +62,8 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
                         curr_joint_index);
                 end
                 rot_mat_link(:, :, curr_instant, curr_joint_index + 1) = ...
-                    rot_mat_prev * rot_mat_link_prev_link_frame(curr_joint_index + 1);
+                    rot_mat_prev * ...
+                    rot_mat_link_prev_link_frame(:, :, curr_instant, curr_joint_index + 1);
             end
         end
     end
@@ -69,18 +71,18 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
     % Compute joint position vector
     joint_position = zeros(3, 1, num_instants, num_links_with_base);
     joint_position(:, :, :, 1) = base_sensor_position.';
-    base_arm_joint_to_base_sensor = zeros(3, 1, num_instants, curr_arm_index);
+    base_arm_joint_base_sensor = zeros(3, 1, num_instants, curr_arm_index);
     
     for curr_instant = 1 : num_instants
         for curr_arm_index = 1 : num_arms
-            base_arm_joint_to_base_sensor(:, :, curr_instant, curr_arm_index) ...
+            base_arm_joint_base_sensor(:, :, curr_instant, curr_arm_index) ...
                 = rot_mat_link(:, :, curr_instant, 1) * ...
                 base_arm_joint_position_sensor_frame(:, curr_arm_index);
             for curr_joint_index = start_end_link_index(curr_arm_index) : ...
                     start_end_link_index(curr_arm_index + 1) - 1
                 if curr_joint_index ==  start_end_link_index(curr_arm_index)
                     curr_joint_prev_joint_position = ...
-                        base_arm_joint_to_base_sensor(:, :, curr_instant, curr_arm_index);
+                        base_arm_joint_base_sensor(:, :, curr_instant, curr_arm_index);
                     prev_joint_position = joint_position(:, :, curr_instant, 1);
                 else
                     curr_joint_prev_joint_position = ...
