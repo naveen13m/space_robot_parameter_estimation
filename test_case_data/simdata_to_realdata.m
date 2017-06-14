@@ -1,5 +1,6 @@
 function simdata_to_realdata(robot_make, base_sensor_position_com_frame)
     % Load simulation data
+    close all;
     curr_dir = pwd;
     data_filename = {'/statevar.dat', '/timevar.dat', '/mtvar.dat'};
     num_data_files = length(data_filename);
@@ -71,5 +72,15 @@ function simdata_to_realdata(robot_make, base_sensor_position_com_frame)
     statevar = statevar(:, 1:num_states) + noise;
     save(strcat(curr_dir, robot_make, '/sim_real_data', '/statevar.dat'),...
         'statevar', '-ascii');
+    
+    % Results verification
+    plot(statevar(:, 1), statevar(:, 2), 'r', 'LineWidth', 3);
+    hold on;
+    quiver(statevar(:, 1), statevar(:, 2), ...
+        statevar(:, 7 + num_links_without_base), statevar(:, 8 + num_links_without_base), ...
+        'g--');
+    legend('Position', 'Velocity');
+    title('Sensor kinematic data in the sensor-based inertial frame');
+    grid on;
 end
 
