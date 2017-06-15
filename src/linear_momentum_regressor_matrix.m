@@ -38,7 +38,6 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
     % Compute rotation matrix
     rot_mat_link_prev_link_frame = ...
         zeros(3, 3, num_instants, num_links_with_base);
-    rot_mat_link = zeros(3, 3, num_instants, num_links_with_base);
     for curr_instant = 1 : num_instants
         for curr_link = 1 : num_links_with_base
             joint_angle = joint_ang_position_prev_joint_frame(curr_instant, curr_link);
@@ -49,6 +48,7 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
         end
     end
     
+    rot_mat_link = zeros(3, 3, num_instants, num_links_with_base);
     rot_mat_link(:, :, :, 1) = rot_mat_link_prev_link_frame(:, :, :, 1);
     start_end_link_index = [arm_initial_link_index, num_links_with_base];
     for curr_instant = 1 : num_instants
@@ -120,8 +120,8 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
                         curr_joint_index
                     joint_angular_velocity_prev_joint_frame = ...
                     [0; 0; joint_ang_velocity_prev_joint_frame(curr_instant, iter_joint_index + 1)];
-                    joint_lin_velocity(:, :, curr_instant, curr_joint_index) = ...
-                        joint_lin_velocity(:, :, curr_instant, curr_joint_index) + ...
+                    joint_lin_velocity(:, :, curr_instant, curr_joint_index + 1) = ...
+                        joint_lin_velocity(:, :, curr_instant, curr_joint_index + 1) + ...
                         cross(joint_angular_velocity_prev_joint_frame, ...
                         (joint_position(:, :, curr_instant, curr_joint_index + 1) - ...
                         joint_position(:, :, curr_instant, iter_joint_index + 1)));
@@ -133,9 +133,40 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
         end
     end
     
-    reg_mat = 0;
-        
-
+    % Regressor matrix assembly
+    reg_mat = [];
+    for curr_instant = 1 : num_instants
+        curr_instant_reg_mat = [];
+        for curr_link_index = 1 : num_links_with_base
+            lin_vel_vector = squeeze(joint_lin_velocity(:, :, curr_instant, curr_link_index));
+            ang_vel_matrix = vec_to_mat(squeeze(joint_ang_velocity(:, :, curr_instant, curr_link_index)));
+            ang_vel_reg_matrix = ang_vel_matrix * rot_mat_link(:, :, curr_instant, curr_link_index);
+            link_mat = [lin_vel_vector, ang_vel_reg_matrix];
+            curr_instant_reg_mat = [curr_instant_reg_mat, link_mat];
+        end
+        reg_mat = [reg_mat; ...
+                   curr_instant_reg_mat];
+    end
+    
+    % Verification    
+    for curr_joint_index = 1 : num_links_with_base
+        figure(1);
+        joint_pos_x_coord = squeeze(joint_position(1, 1, :, curr_joint_index));
+        joint_pos_y_coord  = squeeze(joint_position(2, 1, :, curr_joint_index));
+        joint_lin_vel_x_comp = squeeze(joint_lin_velocity(1, 1, :, curr_joint_index));
+        joint_lin_vel_y_comp = squeeze(joint_lin_velocity(2, 1, :, curr_joint_index));
+        plot(joint_pos_x_coord , joint_pos_y_coord, 'r.', 'LineWidth', 5);
+        hold on;
+        quiver(joint_pos_x_coord , joint_pos_y_coord, joint_lin_vel_x_comp, ... 
+            joint_lin_vel_y_comp, 'g--');
+    end
+    figure(1);
+    axis('square'); grid on;
 
 end
 
+function skew_symm_matrix = vec_to_mat(vector)
+    skew_symm_matrix = [0          -vector(3)  vector(2); ...
+                        vector(3)   0         -vector(1); ...
+                        -vector(2)  vector(1)  0];
+end
