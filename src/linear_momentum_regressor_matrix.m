@@ -1,11 +1,12 @@
 function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
-                                base_sensor_position_base_frame, statevar)
+                     base_sensor_position_base_frame, statevar, mtvar)
     
-    % Load robot structural data
+    % Load robot structural and dynamic parameter data
     curr_dir = pwd;
     cd(strcat('../test_case_data', robot_make, '/config_files'));
     [num_links_with_base, ~, ~, link_length_DH, ~, parent_link_index, ...
-        ~, ~, ~, link_length, ~] = inputs();
+        link_x_com, link_y_com, link_z_com, link_length, ~, link_mass] = ...
+        inputs();
     cd(curr_dir);
     
     % Data assignment
@@ -101,21 +102,22 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
     joint_lin_velocity = zeros(3, 1, num_instants, num_links_with_base);
     joint_ang_velocity = zeros(3, 1, num_instants, num_links_with_base);
     joint_lin_velocity(:, :, :, 1) = base_sensor_lin_velocity.';
-    joint_ang_velocity(:, :, :, 1) = base_sensor_ang_velocity.';
+    joint_ang_velocity(:, :, :, 1) = [zeros(num_instants, 1), ...
+        zeros(num_instants, 1), joint_ang_velocity_prev_joint_frame(:, 1)].';
     
     for curr_instant = 1 : num_instants
         for curr_arm_index = 1 : num_arms
             for curr_joint_index = start_end_link_index(curr_arm_index) : ...
                     start_end_link_index(curr_arm_index + 1) - 1
-                base_angular_velocity_prev_joint_frame = ...
+                base_angular_velocity = ...
                     [0; 0; joint_ang_velocity_prev_joint_frame(curr_instant, 1)];
                 joint_lin_velocity(:, :, curr_instant, curr_joint_index + 1) = ...
                     joint_lin_velocity(:, :, curr_instant, 1) + ...
-                    cross(base_angular_velocity_prev_joint_frame, ...
+                    cross(base_angular_velocity, ...
                     (joint_position(:, :, curr_instant, curr_joint_index + 1) - ...
                     joint_position(:, :, curr_instant, 1)));
                 joint_ang_velocity(:, :, curr_instant, curr_joint_index + 1) = ...
-                    joint_ang_velocity_prev_joint_frame(curr_instant, 1);
+                    base_angular_velocity;
                 for iter_joint_index = start_end_link_index(curr_arm_index) : ...
                         curr_joint_index
                     joint_angular_velocity_prev_joint_frame = ...
@@ -127,7 +129,7 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
                         joint_position(:, :, curr_instant, iter_joint_index + 1)));
                     joint_ang_velocity(:, :, curr_instant, curr_joint_index + 1) = ...
                         joint_ang_velocity(:, :, curr_instant, curr_joint_index + 1) + ...
-                        joint_ang_velocity_prev_joint_frame(curr_instant, iter_joint_index + 1);
+                        [0; 0; joint_ang_velocity_prev_joint_frame(curr_instant, iter_joint_index + 1)];
                 end
             end
         end
@@ -139,7 +141,7 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
         curr_instant_reg_mat = [];
         for curr_link_index = 1 : num_links_with_base
             lin_vel_vector = squeeze(joint_lin_velocity(:, :, curr_instant, curr_link_index));
-            ang_vel_matrix = vec_to_mat(squeeze(joint_ang_velocity(:, :, curr_instant, curr_link_index)));
+            ang_vel_matrix = vec_to_mat(joint_ang_velocity(:, :, curr_instant, curr_link_index));
             ang_vel_reg_matrix = ang_vel_matrix * rot_mat_link(:, :, curr_instant, curr_link_index);
             link_mat = [lin_vel_vector, ang_vel_reg_matrix];
             curr_instant_reg_mat = [curr_instant_reg_mat, link_mat];
@@ -148,7 +150,8 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
                    curr_instant_reg_mat];
     end
     
-    % Verification    
+    
+    % Kinematic data verification    
     for curr_joint_index = 1 : num_links_with_base
         figure(1);
         joint_pos_x_coord = squeeze(joint_position(1, 1, :, curr_joint_index));
@@ -162,11 +165,49 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
     end
     figure(1);
     axis('square'); grid on;
+    
+    % Momentum verification
+    param_vector = zeros(4 * num_links_with_base, 1);
+    link_mass_index = 1 : 4 : 4 * num_links_with_base;
+    link_x_com_index = 2 : 4 : 4 * num_links_with_base;
+    link_y_com_index = 3 : 4 : 4 * num_links_with_base;
+    link_z_com_index = 4 : 4 : 4 * num_links_with_base;
+    param_vector(link_mass_index) = link_mass;
+    param_vector(2:4) = -link_mass(1) * base_sensor_position_base_frame;
+    for curr_link_index = 2 : num_links_with_base
+        param_vector([link_x_com_index(curr_link_index), ...
+            link_y_com_index(curr_link_index), ...
+            link_z_com_index(curr_link_index)], :) = link_mass(curr_link_index) * ...
+            [link_x_com((curr_link_index)), link_y_com((curr_link_index)), ...
+            link_z_com((curr_link_index))].';
+    end
+    computed_lin_mtum = reg_mat * param_vector;
+    x_lin_mtum_computed = computed_lin_mtum(1 : 3 : 3 * num_instants);
+    y_lin_mtum_computed = computed_lin_mtum(1 : 3 : 3 * num_instants);
+%     z_lin_mtum_computed = computed_lin_mtum(1 : 3 : 3 * num_instants);
+    x_lin_mtum_actual = mtvar(:, 1);
+    y_lin_mtum_actual = mtvar(:, 2);
+    x_lin_mtum_error = x_lin_mtum_actual - x_lin_mtum_computed;
+    y_lin_mtum_error = y_lin_mtum_actual - y_lin_mtum_computed;
+    figure(2);
+    plot(x_lin_mtum_computed); hold on;
+    plot(y_lin_mtum_computed);
+    legend('Computed momentum', 'Actual momentum'); grid on;
+    figure(3);
+    plot(x_lin_mtum_actual); hold on;
+    plot(y_lin_mtum_actual);
+    legend('Computed momentum', 'Actual momentum'); grid on;
+    figure(4);
+    plot(x_lin_mtum_error, 'r');
+    hold on;
+    plot(y_lin_mtum_error, 'b');
+%     plot(z_lin_mtum_computed, 'g');
+    legend('x','y'); grid on; 
 
 end
 
 function skew_symm_matrix = vec_to_mat(vector)
     skew_symm_matrix = [0          -vector(3)  vector(2); ...
                         vector(3)   0         -vector(1); ...
-                        -vector(2)  vector(1)  0];
+                       -vector(2)  vector(1)  0];
 end
