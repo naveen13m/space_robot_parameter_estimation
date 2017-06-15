@@ -4,7 +4,7 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
     % Load robot structural and dynamic parameter data
     curr_dir = pwd;
     cd(strcat('../test_case_data', robot_make, '/config_files'));
-    [num_links_with_base, ~, ~, link_length_DH, ~, parent_link_index, ...
+    [num_links_with_base, not_planar, ~, link_length_DH, ~, parent_link_index, ...
         link_x_com, link_y_com, link_z_com, link_length, ~, link_mass] = ...
         inputs();
     cd(curr_dir);
@@ -136,21 +136,20 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
     end
     
     % Regressor matrix assembly
-    reg_mat = [];
+    reg_mat = zeros(3 * num_instants, 4 * num_links_with_base);
     for curr_instant = 1 : num_instants
-        curr_instant_reg_mat = [];
+        curr_instant_reg_mat = zeros(3, 4 * num_links_with_base);
         for curr_link_index = 1 : num_links_with_base
             lin_vel_vector = squeeze(joint_lin_velocity(:, :, curr_instant, curr_link_index));
             ang_vel_matrix = vec_to_mat(joint_ang_velocity(:, :, curr_instant, curr_link_index));
             ang_vel_reg_matrix = ang_vel_matrix * rot_mat_link(:, :, curr_instant, curr_link_index);
             link_mat = [lin_vel_vector, ang_vel_reg_matrix];
-            curr_instant_reg_mat = [curr_instant_reg_mat, link_mat];
+            curr_instant_reg_mat(:, 4 * curr_link_index - 3 : 4 * curr_link_index) = ...
+                link_mat;
         end
-        reg_mat = [reg_mat; ...
-                   curr_instant_reg_mat];
+        reg_mat(3 * curr_instant - 2 : 3 * curr_instant, :) = curr_instant_reg_mat;
     end
-    
-    
+     
     % Kinematic data verification    
     for curr_joint_index = 1 : num_links_with_base
         figure(1);
@@ -163,7 +162,6 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
         quiver(joint_pos_x_coord , joint_pos_y_coord, joint_lin_vel_x_comp, ... 
             joint_lin_vel_y_comp, 'g--');
     end
-    figure(1);
     axis('square'); grid on;
     
     % Momentum verification
@@ -181,28 +179,33 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
             [link_x_com((curr_link_index)), link_y_com((curr_link_index)), ...
             link_z_com((curr_link_index))].';
     end
+    
     computed_lin_mtum = reg_mat * param_vector;
-    x_lin_mtum_computed = computed_lin_mtum(1 : 3 : 3 * num_instants);
-    y_lin_mtum_computed = computed_lin_mtum(1 : 3 : 3 * num_instants);
-%     z_lin_mtum_computed = computed_lin_mtum(1 : 3 : 3 * num_instants);
-    x_lin_mtum_actual = mtvar(:, 1);
-    y_lin_mtum_actual = mtvar(:, 2);
-    x_lin_mtum_error = x_lin_mtum_actual - x_lin_mtum_computed;
-    y_lin_mtum_error = y_lin_mtum_actual - y_lin_mtum_computed;
-    figure(2);
-    plot(x_lin_mtum_computed); hold on;
-    plot(y_lin_mtum_computed);
-    legend('Computed momentum', 'Actual momentum'); grid on;
-    figure(3);
-    plot(x_lin_mtum_actual); hold on;
-    plot(y_lin_mtum_actual);
-    legend('Computed momentum', 'Actual momentum'); grid on;
-    figure(4);
-    plot(x_lin_mtum_error, 'r');
-    hold on;
-    plot(y_lin_mtum_error, 'b');
-%     plot(z_lin_mtum_computed, 'g');
-    legend('x','y'); grid on; 
+        
+    if ~not_planar
+        num_dims = 2;
+    else
+        num_dims = 3;
+    end
+    
+    for direction_index = 1 : num_dims
+        directional_lin_mtum_computed = ...
+            computed_lin_mtum(direction_index : 3 : 3 * num_instants);
+        directional_lin_mtum_actual = mtvar(:, direction_index);
+        directional_lin_mtum_error =  directional_lin_mtum_actual - ...
+            directional_lin_mtum_computed;
+        figure();
+        plot(directional_lin_mtum_computed); hold on;
+        plot(directional_lin_mtum_actual);
+        plot(directional_lin_mtum_error, 'r');
+        legend('Computed momentum', 'Actual momentum', 'Error'); grid on;   
+    end
+    
+    % Delete z-components
+    if ~not_planar
+        reg_mat(3 : 3 : 3 * num_instants,  :) = [];
+        reg_mat(:, 4 : 4 : 4 * num_links_with_base) = [];
+    end
 
 end
 
