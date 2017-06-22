@@ -5,8 +5,7 @@ function simdata_to_realdata(robot_make, base_sensor_position_com_frame)
     data_filename = {'/statevar.dat', '/timevar.dat', '/mtvar.dat'};
     num_data_files = length(data_filename);
     for curr_instant = 1 : num_data_files
-        load(strcat(curr_dir, robot_make, '/sim_data', ...
-            data_filename{curr_instant}));
+        load(strcat(curr_dir, robot_make, '/sim_data', data_filename{curr_instant}));
     end
     
     % Compute base sensor data in the modified inertial frame
@@ -29,9 +28,9 @@ function simdata_to_realdata(robot_make, base_sensor_position_com_frame)
     base_sensor_velocity = zeros(len_time, 3);
     for curr_instant = 1 : len_time
         phi = base_com_orientation(curr_instant, 1);
-        rot_mat_base = [cos(phi) -sin(phi) 0
-                        sin(phi)  cos(phi) 0
-                        0         0        1];
+        theta = base_com_orientation(curr_instant, 2);
+        psi = base_com_orientation(curr_instant, 3);
+        rot_mat_base = eul2rotm([phi, theta, psi], 'ZYX');
         base_sensor_base_com_position = rot_mat_base * ...
             base_sensor_position_com_frame;
         base_sensor_position(curr_instant, :) = ...
@@ -74,7 +73,7 @@ function simdata_to_realdata(robot_make, base_sensor_position_com_frame)
         'statevar', '-ascii');
     
     % Results verification
-    plot(statevar(:, 1), statevar(:, 2), 'r', 'LineWidth', 3);
+    plot(statevar(:, 1), statevar(:, 2), 'r.', 'LineWidth', 3);
     hold on;
     quiver(statevar(:, 1), statevar(:, 2), ...
         statevar(:, 7 + num_links_without_base), statevar(:, 8 + num_links_without_base), ...
