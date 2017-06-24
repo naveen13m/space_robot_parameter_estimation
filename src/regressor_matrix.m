@@ -1,12 +1,13 @@
-function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
+function [reg_mat] = regressor_matrix(robot_make,...
                      base_sensor_position_base_frame, statevar, mtvar)
     
     % Load robot structural and dynamic parameter data
     curr_dir = pwd;
     cd(strcat('../test_case_data', robot_make, '/config_files'));
     [num_links_with_base, not_planar, ~, link_length_DH, ~, parent_link_index, ...
-        link_x_com, link_y_com, link_z_com, link_length, ~, link_mass] = ...
-        inputs();
+        link_x_com, link_y_com, link_z_com, link_length, ~, link_mass, ~, ...
+        inertia_xx_com, inertia_yy_com, inertia_zz_com, ...
+        inertia_xy_com, inertia_yz_com, inertia_zx_com] = inputs();
     cd(curr_dir);
     
     % Data assignment
@@ -136,18 +137,28 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
     end
     
     % Regressor matrix assembly
-    reg_mat = zeros(3 * num_instants, 4 * num_links_with_base);
+    reg_mat = zeros(6 * num_instants, 10 * num_links_with_base);
     for curr_instant = 1 : num_instants
-        curr_instant_reg_mat = zeros(3, 4 * num_links_with_base);
+        curr_instant_reg_mat = zeros(6, 10 * num_links_with_base);
         for curr_link_index = 1 : num_links_with_base
-            lin_vel_vector = squeeze(joint_lin_velocity(:, :, curr_instant, curr_link_index));
+            submatrix_11 = zeros(3, 6);
+            submatrix_12 = squeeze(joint_lin_velocity(:, :, curr_instant, curr_link_index));
             ang_vel_matrix = vec_to_mat(joint_ang_velocity(:, :, curr_instant, curr_link_index));
-            ang_vel_reg_matrix = ang_vel_matrix * rot_mat_link(:, :, curr_instant, curr_link_index);
-            link_mat = [lin_vel_vector, ang_vel_reg_matrix];
-            curr_instant_reg_mat(:, 4 * curr_link_index - 3 : 4 * curr_link_index) = ...
+            submatrix_13 = ang_vel_matrix * rot_mat_link(:, :, curr_instant, curr_link_index);
+            submatrix_21 = rot_mat_link(:, :, curr_instant, curr_link_index) * ...
+                bullet(rot_mat_link(:, :, curr_instant, curr_link_index) * ...
+                joint_ang_velocity(:, :, curr_instant, curr_link_index));
+            submatrix_22 = vec_to_mat(joint_position(:, :, curr_instant, curr_link_index)) * ...
+                joint_lin_velocity(:, :, curr_instant, curr_link_index);
+            submatrix_23 = vec_to_mat(vec_to_mat(joint_position(:, :, curr_instant, curr_link_index)) * ...
+                joint_ang_velocity(:, :, curr_instant, curr_link_index) - submatrix_12) * ...
+                rot_mat_link(:, :, curr_instant, curr_link_index);
+            link_mat = [submatrix_11, submatrix_12, submatrix_13; ...
+                        submatrix_21, submatrix_22, submatrix_23];
+            curr_instant_reg_mat(:, 10 * curr_link_index - 9 : 10 * curr_link_index) = ...
                 link_mat;
         end
-        reg_mat(3 * curr_instant - 2 : 3 * curr_instant, :) = curr_instant_reg_mat;
+        reg_mat(6 * curr_instant - 5 : 6 * curr_instant, :) = curr_instant_reg_mat;
     end
      
     % Kinematic data verification    
@@ -165,39 +176,41 @@ function [reg_mat] = linear_momentum_regressor_matrix(robot_make,...
     axis('square'); grid on;
     
     % Momentum verification
-    param_vector = zeros(4 * num_links_with_base, 1);
-    link_mass_index = 1 : 4 : 4 * num_links_with_base;
-    link_x_com_index = 2 : 4 : 4 * num_links_with_base;
-    link_y_com_index = 3 : 4 : 4 * num_links_with_base;
-    link_z_com_index = 4 : 4 : 4 * num_links_with_base;
-    param_vector(link_mass_index) = link_mass;
-    param_vector(2:4) = -link_mass(1) * base_sensor_position_base_frame;
-    for curr_link_index = 2 : num_links_with_base
-        param_vector([link_x_com_index(curr_link_index), ...
-            link_y_com_index(curr_link_index), ...
-            link_z_com_index(curr_link_index)], :) = link_mass(curr_link_index) * ...
-            [link_x_com((curr_link_index)), link_y_com((curr_link_index)), ...
-            link_z_com((curr_link_index))].';
+    param_vector = zeros(10 * num_links_with_base, 1);
+    link_x_com(1) = -base_sensor_position_base_frame(1);
+    link_y_com(1) = -base_sensor_position_base_frame(2);
+    link_z_com(1) = -base_sensor_position_base_frame(3);
+    % param_vector_link = [Iaxx, Iayy, Iazz, Iaxy, Iayz, Iazx, m, max, may, maz].'
+    for curr_link_index = 1 : num_links_with_base
+        I_mat_com = [inertia_xx_com(curr_link_index) inertia_xy_com(curr_link_index) inertia_zx_com(curr_link_index); ...
+                     inertia_xy_com(curr_link_index) inertia_yy_com(curr_link_index) inertia_yz_com(curr_link_index); ...
+                     inertia_zx_com(curr_link_index) inertia_yz_com(curr_link_index) inertia_zz_com(curr_link_index)];
+        link_com_link_frame_position = [link_x_com(curr_link_index),...
+            link_y_com(curr_link_index), link_z_com(curr_link_index)].';
+        I_mat_joint = move_inertia_axis(I_mat_com, link_mass(curr_link_index), link_com_link_frame_position);
+        I_vec_joint = inertia_mat_to_vec(I_mat_joint);
+        param_vector(10 * (curr_link_index - 1) + 1 : 10 * (curr_link_index), :) = ...
+            [I_vec_joint; link_mass(curr_link_index); link_mass(curr_link_index) * link_com_link_frame_position];
     end
-    
-    computed_lin_mtum = reg_mat * param_vector;
+    computed_mtum = reg_mat * param_vector;
         
     if ~not_planar
-        num_dims = 2;
-    else
         num_dims = 3;
+%         mtvar(:, [3, 4, 5]) = [];
+    else
+        num_dims = 6;
     end
     
-    for direction_index = 1 : num_dims
-        directional_lin_mtum_computed = ...
-            computed_lin_mtum(direction_index : 3 : 3 * num_instants);
-        directional_lin_mtum_actual = mtvar(:, direction_index);
-        directional_lin_mtum_error =  directional_lin_mtum_actual - ...
-            directional_lin_mtum_computed;
+    for direction_index = 1 : 6
+        directional_mtum_computed = ...
+            computed_mtum(direction_index : 6 : 6 * num_instants);
+        directional_mtum_actual = mtvar(:, direction_index);
+        directional_mtum_error =  directional_mtum_actual - ...
+            directional_mtum_computed;
         figure();
-        plot(directional_lin_mtum_computed); hold on;
-        plot(directional_lin_mtum_actual);
-        plot(directional_lin_mtum_error, 'r');
+        plot(directional_mtum_computed); hold on;
+        plot(directional_mtum_actual);
+        plot(directional_mtum_error, 'r');
         legend('Computed momentum', 'Actual momentum', 'Error'); grid on;   
     end
     
@@ -213,4 +226,18 @@ function skew_symm_matrix = vec_to_mat(vector)
     skew_symm_matrix = [0          -vector(3)  vector(2); ...
                         vector(3)   0         -vector(1); ...
                        -vector(2)  vector(1)  0];
+end
+
+function bullet_notation = bullet(omg)
+    bullet_notation = [omg(1) 0 0 omg(2) 0 omg(3); ...
+                       0 omg(2) 0 omg(1) omg(3) 0; ...
+                       0 0 omg(3) 0 omg(2) omg(1)];
+end
+
+function I_new = move_inertia_axis(I_old, m, pos_vec)
+    I_new = I_old - m * vec_to_mat(pos_vec) ^ 2;
+end
+
+function I_vec = inertia_mat_to_vec(I)
+    I_vec = [I(1, 1) I(2, 2) I(3, 3) I(1, 2) I(2, 3) I(3, 1)].'; 
 end

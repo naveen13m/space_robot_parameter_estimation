@@ -3,9 +3,10 @@ close all;
 clc;
 
 % Configuration parameters
-% robot_make = '/2_link';
+robot_make = '/2_link';
 % robot_make = '/4_link';
-robot_make = '/dual_arm';
+% robot_make = '/dual_arm';
+% robot_make = '/temp_system';
 base_sensor_position_base_frame = [-0.2; -0.3; 0];
 sim_data = 1;
 data_dir = {'/experimental_data', '/sim_real_data'};
@@ -18,7 +19,7 @@ curr_dir = pwd;
 data_filename = data_filename{sim_data  + 1};
 num_data_files = length(data_filename);
 for i = 1 : num_data_files
-    load(strcat(curr_dir(1:end-4), '/test_case_data', ...
+    load(strcat(curr_dir(1 : end - 4), '/test_case_data', ...
         robot_make, data_dir{sim_data + 1}, data_filename{i}));
 end
 
@@ -30,13 +31,11 @@ cd(strcat('../test_case_data', robot_make, '/config_files'));
     inputs();
 cd(curr_dir);
 
-% dbstop in verify_ang_mtum_model.m at 265
+% dbstop in verify_ang_mtum_model.m at 246
 
 % Populate the linear momentum regressor matrix
-% lin_mtum_reg_mat = linear_momentum_regressor_matrix(robot_make, ...
-%     base_sensor_position_base_frame, statevar, mtvar);
-verify_ang_mtum_model(robot_make,...
-                     base_sensor_position_base_frame, statevar, mtvar);
+lin_mtum_reg_mat = regressor_matrix(robot_make, ...
+    base_sensor_position_base_frame, statevar, mtvar);
 
 % Compute mass and CoM parameters
 % num_instants = length(timevar);
