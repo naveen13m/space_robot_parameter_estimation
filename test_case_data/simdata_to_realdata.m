@@ -16,28 +16,26 @@ function simdata_to_realdata(robot_make, base_sensor_position_com_frame)
     cd(curr_dir);
     base_com_position = statevar(:, 1 : 3);
     base_com_orientation = statevar(:, 4 : 6);
-    %joint_position = statvar(:, 7 : 6 + num_links);
     base_com_lin_vel = statevar(:, 7 + num_links_without_base : 9 + num_links_without_base);
     base_com_ang_vel = statevar(:, 10 + num_links_without_base : 12 + num_links_without_base);
     temp = base_com_ang_vel(:, 1);
     base_com_ang_vel(:, 1) = base_com_ang_vel(:, 2);
     base_com_ang_vel(:, 2) = base_com_ang_vel(:, 3);
     base_com_ang_vel(:, 3) = temp;
-    %joint_velocity = statevar(:, 13 + num_links : 12 + 2 * num_links);
     base_sensor_position = zeros(len_time, 3);
-    base_sensor_velocity = zeros(len_time, 3);
+    base_sensor_lin_velocity = zeros(len_time, 3);
     for curr_instant = 1 : len_time
-        phi = base_com_orientation(curr_instant, 1);
-        theta = base_com_orientation(curr_instant, 2);
-        psi = base_com_orientation(curr_instant, 3);
-        rot_mat_base = eul2rotm([phi, theta, psi], 'ZYX');
+        phi = rad2deg(base_com_orientation(curr_instant, 1));
+        psi = rad2deg(base_com_orientation(curr_instant, 2));
+        theta = rad2deg(base_com_orientation(curr_instant, 3));
+        rot_mat_base = rotz(phi) * rotx(psi) * roty(theta);
         base_sensor_base_com_position = rot_mat_base * ...
             base_sensor_position_com_frame;
         base_sensor_position(curr_instant, :) = ...
         (base_com_position(curr_instant, 1:3).' + ...
             base_sensor_base_com_position).' - ...
             base_sensor_position_com_frame.';
-        base_sensor_velocity(curr_instant, :) = ...
+        base_sensor_lin_velocity(curr_instant, :) = ...
         (base_com_lin_vel(curr_instant, 1:3).' + ...
             cross(base_com_ang_vel(curr_instant, 1 : 3).', ...
             base_sensor_base_com_position)).';
@@ -46,7 +44,7 @@ function simdata_to_realdata(robot_make, base_sensor_position_com_frame)
     % Save computed sensor position and velocity into statevar
     statevar(:, 1:3) = base_sensor_position;
     statevar(:, 7 + num_links_without_base : 9 + num_links_without_base)...
-        = base_sensor_velocity;
+        = base_sensor_lin_velocity;
     
     % Add noise to kinematic data
     add_noise = 0;
@@ -73,11 +71,11 @@ function simdata_to_realdata(robot_make, base_sensor_position_com_frame)
         'statevar', '-ascii');
     
     % Results verification
-    plot(statevar(:, 1), statevar(:, 2), 'r.', 'LineWidth', 3);
+    plot3(statevar(:, 1), statevar(:, 2), statevar(:, 3), 'r.', 'LineWidth', 3);
     hold on;
-    quiver(statevar(:, 1), statevar(:, 2), ...
+    quiver3(statevar(:, 1), statevar(:, 2), statevar(:, 3), ...
         statevar(:, 7 + num_links_without_base), statevar(:, 8 + num_links_without_base), ...
-        'g--');
+        statevar(:, 9 + num_links_without_base), 'g--');
     legend('Position', 'Velocity');
     title('Sensor kinematic data in the sensor-based inertial frame');
     grid on;
