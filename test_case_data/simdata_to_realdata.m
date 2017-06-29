@@ -1,6 +1,7 @@
-function simdata_to_realdata(robot_make, base_sensor_position_com_frame)
+function simdata_to_realdata(robot_make, ...
+                            base_sensor_base_com_position_base_com)
     % Load simulation data
-    close all;
+    close all; clc;
     curr_dir = pwd;
     data_filename = {'/statevar.dat', '/timevar.dat', '/mtvar.dat'};
     num_data_files = length(data_filename);
@@ -17,27 +18,29 @@ function simdata_to_realdata(robot_make, base_sensor_position_com_frame)
     base_com_position = statevar(:, 1 : 3);
     base_com_orientation = statevar(:, 4 : 6);
     base_com_lin_vel = statevar(:, 7 + num_links_without_base : 9 + num_links_without_base);
-    base_com_ang_vel = statevar(:, 10 + num_links_without_base : 12 + num_links_without_base);
-    temp = base_com_ang_vel(:, 1);
-    base_com_ang_vel(:, 1) = base_com_ang_vel(:, 2);
-    base_com_ang_vel(:, 2) = base_com_ang_vel(:, 3);
-    base_com_ang_vel(:, 3) = temp;
+    base_com_eul_rates = statevar(:, 10 + num_links_without_base : 12 + num_links_without_base);
     base_sensor_position = zeros(len_time, 3);
     base_sensor_lin_velocity = zeros(len_time, 3);
+    base_com_ang_vel = zeros(len_time, 3);
     for curr_instant = 1 : len_time
-        phi = rad2deg(base_com_orientation(curr_instant, 1));
-        psi = rad2deg(base_com_orientation(curr_instant, 2));
-        theta = rad2deg(base_com_orientation(curr_instant, 3));
-        rot_mat_base = rotz(phi) * rotx(psi) * roty(theta);
+        phi = base_com_orientation(curr_instant, 1);
+        theta = base_com_orientation(curr_instant, 2);
+        psi = base_com_orientation(curr_instant, 3);
+        rot_mat_base = ZXY_euler_to_rot_mat(phi, theta, psi);
+        ZXY_euler_rates_to_body_rates = [-sin(psi)*cos(theta)   cos(psi)  0
+                                          sin(theta)            0         1
+                                          cos(psi)*cos(theta)   sin(psi)  0];
+        base_com_ang_vel(curr_instant, :) = rot_mat_base * ...
+            ZXY_euler_rates_to_body_rates * base_com_eul_rates(curr_instant, :).';
         base_sensor_base_com_position = rot_mat_base * ...
-            base_sensor_position_com_frame;
+            base_sensor_base_com_position_base_com;
         base_sensor_position(curr_instant, :) = ...
         (base_com_position(curr_instant, 1:3).' + ...
             base_sensor_base_com_position).' - ...
-            base_sensor_position_com_frame.';
+            base_sensor_base_com_position_base_com.';
         base_sensor_lin_velocity(curr_instant, :) = ...
-        (base_com_lin_vel(curr_instant, 1:3).' + ...
-            cross(base_com_ang_vel(curr_instant, 1 : 3).', ...
+        (base_com_lin_vel(curr_instant, :).' + ...
+            cross(base_com_ang_vel(curr_instant, :).', ...
             base_sensor_base_com_position)).';
     end
     
@@ -45,6 +48,8 @@ function simdata_to_realdata(robot_make, base_sensor_position_com_frame)
     statevar(:, 1:3) = base_sensor_position;
     statevar(:, 7 + num_links_without_base : 9 + num_links_without_base)...
         = base_sensor_lin_velocity;
+    statevar(:, 10 + num_links_without_base : 12 + num_links_without_base)...
+        = base_com_ang_vel;
     
     % Add noise to kinematic data
     add_noise = 0;
@@ -81,3 +86,8 @@ function simdata_to_realdata(robot_make, base_sensor_position_com_frame)
     grid on;
 end
 
+function rot_mat = ZXY_euler_to_rot_mat(phi, theta, psi)
+    rot_mat = [cos(phi)*cos(psi)-sin(phi)*sin(theta)*sin(psi)   -sin(phi)*cos(theta)     cos(phi)*sin(psi)+sin(phi)*sin(theta)*cos(psi)
+               sin(phi)*cos(psi)+cos(phi)*sin(theta)*sin(psi)    cos(phi)*cos(theta)     sin(phi)*sin(psi)-cos(phi)*sin(theta)*cos(psi)
+               -cos(theta)*sin(psi)                              sin(theta)              cos(theta)*cos(psi)                         ];
+end
