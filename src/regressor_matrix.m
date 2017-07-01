@@ -39,7 +39,7 @@ function [reg_mat] = regressor_matrix(robot_make,...
         12 + num_links_without_base).'; 
     joint_ang_speed = statevar(:, 13 + num_links_without_base :...
         12 + 2 * num_links_without_base).';
-    num_instants = length(statevar);
+    num_instants = size(statevar, 1);
     
     % Compute orientation of link frames - Rotation matrix
     rot_mat_link_prev_link_frame = zeros(3, 3, num_instants, num_links);
@@ -146,17 +146,28 @@ function [reg_mat] = regressor_matrix(robot_make,...
     link_x_com(1) = -base_sensor_base_frame_position_base_frame(1);
     link_y_com(1) = -base_sensor_base_frame_position_base_frame(2);
     link_z_com(1) = -base_sensor_base_frame_position_base_frame(3);
+    I_mat_com_com = zeros(3, 3, num_links);
+    I_mat_joint_joint = zeros(3, 3, num_links);
+    I_vec_joint_joint = zeros(6, num_links);
+    link_com_link_frame_position_link_frame = zeros(3, num_links);
     % param_vector_link = [Iaxx, Iayy, Iazz, Iaxy, Iayz, Iazx, m, max, may, maz].'
     for curr_link_index = 1 : num_links
-        I_mat_com = [inertia_xx_com(curr_link_index) inertia_xy_com(curr_link_index) inertia_zx_com(curr_link_index); ...
-                     inertia_xy_com(curr_link_index) inertia_yy_com(curr_link_index) inertia_yz_com(curr_link_index); ...
-                     inertia_zx_com(curr_link_index) inertia_yz_com(curr_link_index) inertia_zz_com(curr_link_index)];
-        link_com_link_frame_position = [link_x_com(curr_link_index),...
-            link_y_com(curr_link_index), link_z_com(curr_link_index)].';
-        I_mat_joint = move_inertia_axis(I_mat_com, link_mass(curr_link_index), link_com_link_frame_position);
-        I_vec_joint = inertia_mat_to_vec(I_mat_joint);
+        I_mat_com_com(:, :, curr_link_index) = ...
+            [inertia_xx_com(curr_link_index) inertia_xy_com(curr_link_index) inertia_zx_com(curr_link_index); ...
+             inertia_xy_com(curr_link_index) inertia_yy_com(curr_link_index) inertia_yz_com(curr_link_index); ...
+             inertia_zx_com(curr_link_index) inertia_yz_com(curr_link_index) inertia_zz_com(curr_link_index)];
+        link_com_link_frame_position_link_frame(:, curr_link_index) = ...
+                                        [link_x_com(curr_link_index);...
+                                        link_y_com(curr_link_index);...
+                                        link_z_com(curr_link_index)];
+        I_mat_joint_joint(:, :, curr_link_index) = ...
+            move_inertia_axis(I_mat_com_com(:, :, curr_link_index), ...
+            link_mass(curr_link_index), link_com_link_frame_position_link_frame(:, curr_link_index));
+        I_vec_joint_joint(:, curr_link_index) = inertia_mat_to_vec(I_mat_joint_joint(:, :, curr_link_index));
         param_vector(10 * (curr_link_index - 1) + 1 : 10 * (curr_link_index), :) = ...
-            [I_vec_joint; link_mass(curr_link_index); link_mass(curr_link_index) * link_com_link_frame_position];
+            [I_vec_joint_joint(:, curr_link_index); ...
+             link_mass(curr_link_index); ...
+             link_mass(curr_link_index) * link_com_link_frame_position_link_frame(:, curr_link_index)];
     end
     
     % Regressor matrix assembly
@@ -171,11 +182,11 @@ function [reg_mat] = regressor_matrix(robot_make,...
             submatrix_21 = rot_mat_link(:, :, curr_instant, curr_link_index) * ...
                 bullet(rot_mat_link(:, :, curr_instant, curr_link_index).' * ...
                 link_frame_ang_velocity(:, curr_instant, curr_link_index));
-            submatrix_22 = vec_to_mat(link_frame_position(:, curr_instant, curr_link_index)) * ...
-                link_frame_lin_velocity(:, curr_instant, curr_link_index);
-            submatrix_23 = vec_to_mat(vec_to_mat(link_frame_position(:, curr_instant, curr_link_index)) * ...
-                link_frame_ang_velocity(:, curr_instant, curr_link_index) - submatrix_12) * ...
-                rot_mat_link(:, :, curr_instant, curr_link_index);
+            submatrix_22 = cross(link_frame_position(:, curr_instant, curr_link_index), ...
+                submatrix_12);
+            submatrix_23 = (vec_to_mat(link_frame_position(:, curr_instant, curr_link_index)) * ...
+                vec_to_mat(link_frame_ang_velocity(:, curr_instant, curr_link_index)) - ...
+                vec_to_mat(submatrix_12)) * rot_mat_link(:, :, curr_instant, curr_link_index);
             link_mat = [submatrix_11, submatrix_12, submatrix_13; ...
                         submatrix_21, submatrix_22, submatrix_23];
             curr_instant_reg_mat(:, 10 * curr_link_index - 9 : 10 * curr_link_index) = ...
@@ -204,15 +215,7 @@ function [reg_mat] = regressor_matrix(robot_make,...
     
     % Momentum verification
     computed_mtum = reg_mat * param_vector;
-    param_vector
-        
-%     if ~not_planar
-%         num_dims = 3;
-%         mtvar(:, [3, 4, 5]) = [];
-%     else
-%         num_dims = 6;
-%     end
-    
+              
     for direction_index = 1 : 6
         directional_mtum_computed = ...
             computed_mtum(direction_index : 6 : 6 * num_instants);
@@ -225,49 +228,5 @@ function [reg_mat] = regressor_matrix(robot_make,...
         plot(directional_mtum_error, 'r');
         legend('Computed momentum', 'Actual momentum', 'Error'); grid on;   
     end
-    
-    % Delete Px, Py, Lz and zero comps
-%     if ~not_planar
-%         reg_mat(3 : 3 : 3 * num_instants,  :) = [];
-%         reg_mat(:, 4 : 4 : 4 * num_links_with_base) = [];
-%     end
-
-end
-
-function rot_mat = ZXY_euler_to_rot_mat(phi, theta, psi)
-    rot_mat = [cos(phi) * cos(psi) - sin(phi) * sin(psi) * sin(theta)   -cos(theta) * sin(phi)   cos(phi) * sin(psi) + cos(psi) * sin(phi) * sin(theta)
-               cos(psi) * sin(phi) + cos(phi) * sin(psi) * sin(theta)    cos(phi) * cos(theta)   sin(phi) * sin(psi) - cos(phi) * cos(psi) * sin(theta) 
-              -cos(theta) * sin(psi)                                     sin(theta)              cos(psi) * cos(theta)                          ];
-end
-
-function skew_symm_matrix = vec_to_mat(vector)
-    skew_symm_matrix = [0          -vector(3)  vector(2); ...
-                        vector(3)   0         -vector(1); ...
-                       -vector(2)  vector(1)  0];
-end
-
-function bullet_notation = bullet(omg)
-    bullet_notation = [omg(1) 0 0 omg(2) 0 omg(3); ...
-                       0 omg(2) 0 omg(1) omg(3) 0; ...
-                       0 0 omg(3) 0 omg(2) omg(1)];
-end
-
-function I_new = move_inertia_axis(I_old, m, pos_vec)
-    I_new = I_old + m * (pos_vec.' * pos_vec * eye(3) - pos_vec * pos_vec.');
-end
-
-function I_vec = inertia_mat_to_vec(I)
-    I_vec = [I(1, 1) I(2, 2) I(3, 3) I(1, 2) I(2, 3) I(3, 1)].'; 
-end
-
-function rot_mat = DH_to_rot_mat(joint_twist, joint_position)
-    rot_mat = [cos(joint_position)                   -sin(joint_position)                     0; ...
-               sin(joint_position) * cos(joint_twist) cos(joint_position) * cos(joint_twist) -sin(joint_twist); ... 
-               sin(joint_position) * sin(joint_twist) cos(joint_position) * sin(joint_twist)  cos(joint_twist)];
-end
-
-function lin_vel = angular_to_linear_vel(ref_frame_position, ...
-    link_frame_position, ref_joint_ang_velocity)
-    lin_vel = cross(ref_joint_ang_velocity, link_frame_position - ref_frame_position);
 end
         
