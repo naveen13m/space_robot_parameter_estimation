@@ -51,7 +51,7 @@ for i=1:length(time)
     fill3(BX(i,1:4),BY(i,1:4),BZ(i,1:4),[4 4 4 4],BX(i,5:8),BY(i,5:8),BZ(i,5:8),[4 4 4 4]...
         ,BX(i,[2,3,6,7]),BY(i,[2,3,6,7]),BZ(i,[2,3,6,7]),[4 4 4 4], ...
         BX(i,[3,4,5,6]),BY(i,[3,4,5,6]),BZ(i,[3,4,5,6]),[4 4 4 4]);
-    axis([-3 3 -3 3 -3 3]);
+    axis([xmin xmax ymin ymax zmin zmax ]);
     set (gca,'fontsize',10,'fontweight','normal','fontname','times new romans','linewidth',0.5,'Box', 'off','TickDir','out' );
     xlabel('X (m)','fontweight','n','fontsize',10);
     ylabel('Y (m)','fontweight','n','fontsize',10);
