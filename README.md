@@ -1,8 +1,14 @@
 # Space Robot Parameter Estimation
 
 # Generating test cases
-- The files present in config_files have to pasted in ReDySim_Floating_Base/InvDyn
-- Execute run_me.m to generate .dat files
+- The files present in test_case_data/{robot_make}/config_files have to pasted into ReDySim_Floating_Base/InvDyn
+- From ReDySim_Floating_Base/InvDyn , execute run_me.m('/robot_make') <br />
+The data files are generated and also copied to test_case_data/robot_make/sim_data 
+- From test_case_data/ , execute simdata_to_realdata('/robot_make', [x_coord, y_coord, z_coord].') <br />
+The argument is the sensor coordinates seen in the base CoM frame (ReDySim frame) <br />
+The transformed data is stored in test_case_data/{robot_make}/sim_real_data <br />
+- From src/ , execute run_me
+Before executing make sure that the correct robot_make and the same sensor coordinates are presnr here also
 
 # .dat files indexing
 Note: All the data is in SI units<br />
