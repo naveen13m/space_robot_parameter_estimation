@@ -1,4 +1,4 @@
-function [reg_mat] = regressor_matrix(robot_make,...
+function global_kin_mat = global_kinematic_matrix(robot_make,...
                      base_sensor_base_frame_position_base_frame, ...
                      statevar, mtvar)
     
@@ -142,9 +142,10 @@ function [reg_mat] = regressor_matrix(robot_make,...
     end
     
     % Regressor matrix assembly
-    num_equs = 9;
+    num_equs = 6;
+%     num_equs = 9; %If CoM equs are included
     num_link_params = 10;
-    reg_mat = zeros(num_equs * num_instants, num_link_params * num_links);
+    global_kin_mat = zeros(num_equs * num_instants, num_link_params * num_links);
     for curr_instant = 1 : num_instants
         for curr_link_index = 1 : num_links
             submatrix_11 = zeros(3, 6);
@@ -159,16 +160,13 @@ function [reg_mat] = regressor_matrix(robot_make,...
             submatrix_23 = (vec_to_mat(link_frame_position(:, curr_instant, curr_link_index)) * ...
                 vec_to_mat(link_frame_ang_velocity(:, curr_instant, curr_link_index)) - ...
                 vec_to_mat(submatrix_12)) * rot_mat_link(:, :, curr_instant, curr_link_index);
-            submatrix_31 = submatrix_11;
-            submatrix_32 = link_frame_position(:, curr_instant, curr_link_index);
-            submatrix_33 = rot_mat_link(:, :, curr_instant, curr_link_index);
-            link_mat = [submatrix_11, submatrix_12, submatrix_13; ...
-                        submatrix_21, submatrix_22, submatrix_23; ...
-                        submatrix_31, submatrix_32, submatrix_33];
-            curr_instant_reg_mat(:, num_link_params * (curr_link_index - 1) + 1 :...
-                num_link_params * curr_link_index) = link_mat;
+            link_kin_mat = [submatrix_11, submatrix_12, submatrix_13; ...
+                            submatrix_21, submatrix_22, submatrix_23];
+%                         submatrix_31, submatrix_32, submatrix_33];
+            system_kin_mat(:, num_link_params * (curr_link_index - 1) + 1 :...
+                num_link_params * curr_link_index) = link_kin_mat;
         end
-        reg_mat(num_equs * (curr_instant - 1) + 1 : num_equs * curr_instant, :) = curr_instant_reg_mat;
+        global_kin_mat(num_equs * (curr_instant - 1) + 1 : num_equs * curr_instant, :) = system_kin_mat;
     end
      
     % Kinematic data and momentum verification    
@@ -177,39 +175,9 @@ function [reg_mat] = regressor_matrix(robot_make,...
     param_vector = construct_dyn_param_vector(...
         inertia_xx_com, inertia_yy_com, inertia_zz_com, inertia_xy_com, inertia_yz_com,...
         inertia_zx_com, link_mass, link_x_com, link_y_com, link_z_com, num_links);
-    computed_mtum = reg_mat * param_vector;
+    computed_mtum = global_kin_mat * param_vector;
     plot_momentum_data(num_instants, num_equs, computed_mtum, mtvar, 6);
-    reg_mat_modified = reg_mat;
-    param_vector_modified = param_vector;
-    mtvar_modified = mtvar;
-    if ~not_planar
-        base_link_cols = [1, 2, 4, 5, 6, 10];
-        base_link_rows = [3, 4, 5];
-        num_cols_delete = length(base_link_cols);
-        num_rows_delete = length(base_link_rows);
-        cols_to_delete = zeros(1, num_cols_delete * num_links);
-        rows_to_delete = zeros(1, num_rows_delete * num_instants);
-        for curr_link_index = 1 : num_links
-            curr_link_cols = num_link_params * (curr_link_index - 1) + base_link_cols;
-            cols_to_delete(:, num_cols_delete * (curr_link_index - 1) + 1 :...
-                num_cols_delete * (curr_link_index)) = curr_link_cols;
-        end
-        for curr_instant = 1 : num_instants
-            curr_instant_rows = num_equs * (curr_instant - 1) + base_link_rows;
-            rows_to_delete(:, num_rows_delete * (curr_instant - 1) + 1 :...
-                num_rows_delete * curr_instant) = curr_instant_rows;
-        end
-        reg_mat_modified(:, cols_to_delete) = [];
-        reg_mat_modified(rows_to_delete, :) = [];
-        param_vector_modified(cols_to_delete, :) = [];
-        num_equs_modified = 6;
-        num_dims_modified = 3;
-        mtvar_modified(:, base_link_rows) = [];
-    end
-    computed_mtum_modified = reg_mat_modified * param_vector_modified;
-    plot_momentum_data(num_instants, num_equs_modified, ...
-        computed_mtum_modified, mtvar_modified, num_dims_modified);
-    rref_reg_mat_modified = rref(reg_mat_modified);
+    
 end
 
 function param_vector = construct_dyn_param_vector(...
