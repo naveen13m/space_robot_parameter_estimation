@@ -94,8 +94,15 @@ actual_coupled_params =  [m012;
                           m12 * a12;
                           I332
                           m2 * a2];
+
+actual_decoupled_params = [I330;
+                           m0;
+                           m0 * a0;
+                           I331;
+                           m1;
+                           m1 * a1];
                       
-actual_and_computed_coupled = [actual_coupled_params, coupled_params]                      
+actual_and_computed_coupled = [actual_coupled_params, coupled_params];
                                                                                               
 z12 = zeros(1, 2);
 z21 = zeros(2, 1);
@@ -108,7 +115,7 @@ pcm = [0   1   z12 0   1         z12      0   1     z12;      % Link-0
        z21 z21 i22 z21 l0        z22      z21 l0    z22;      %
        % Line-1
        1   0   z12 1   l0sq      2 * l0.' 0   l01sq z12;      % Link-01
-       z21 z21 i22 z21 l0 + l01  R1       z21 l01   z22;      %
+       z21 z21 i22 z21 l0 + l01  R1       z21 z21   z22;      %
        % Line-2
        0   0   z12 1   0         z12      0   l1sq  z12;      % Link-1
        z21 z21 z22 z21 z21       i22      z21 l1    z22;      %
@@ -122,12 +129,16 @@ pcm = [0   1   z12 0   1         z12      0   1     z12;      % Link-0
 rref_pcm = rref(pcm);
 rank_pcm = rank(pcm);
 cond(pcm);
-actual_params = pinv(pcm) * actual_coupled_params;
-comp_params = pinv(pcm) * coupled_params;
+rhs = (coupled_params - pcm(:, end - 3 : end) * [I332; m2; m2 * a2]);
+comp_decoup_params = pinv(pcm(:, 1 : end - 4)) * rhs;
 
-%actual_and_computed_params = [actual_params, comp_params]
+actual_computed_decoupled = [actual_decoupled_params, comp_decoup_params]
+% error_params = comp_decoup_params - actual_decoupled_params
+% compare1 = [pcm(:, 1 : end - 4) * actual_decoupled_params, rhs]
+% error_rhs = pcm(:, 1 : end - 4) * actual_decoupled_params - rhs
 
-pcm_lin_mtum = pcm;
-pcm_lin_mtum([1,5,8,11,14], :) = [];
-rref(pcm_lin_mtum);
-rank(pcm_lin_mtum);
+% Verification
+% pcm_lin_mtum = pcm;
+% pcm_lin_mtum([1,5,8,11,14], :) = [];
+% rref(pcm_lin_mtum);
+% rank(pcm_lin_mtum);
