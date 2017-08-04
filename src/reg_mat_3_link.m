@@ -87,7 +87,7 @@ actual_coupled_params =  [m012;
                           I330 + m12 * l0sq;
                           m0 * a0 + m12 * l0;
                           I3301 + m2 * l01sq;
-                          m01 * a01 + m12 * l01;
+                          m01 * a01 + m2 * l01;
                           I331 + m2 * l1sq;
                           m1 * a1 + m2 * l1;
                           I3312
