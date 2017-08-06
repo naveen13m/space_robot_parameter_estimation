@@ -115,7 +115,7 @@ pcm = [0   1   z12 0   1         z12      0   1     z12;      % Link-0
        z21 z21 i22 z21 l0        z22      z21 l0    z22;      %
        % Line-1
        1   0   z12 1   l0sq      2 * l0.' 0   l01sq z12;      % Link-01
-       z21 z21 i22 z21 l0 + l01  R1       z21 z21   z22;      %
+       z21 z21 i22 z21 l0        R1       z21 l01   z22;      %
        % Line-2
        0   0   z12 1   0         z12      0   l1sq  z12;      % Link-1
        z21 z21 z22 z21 z21       i22      z21 l1    z22;      %
@@ -132,13 +132,21 @@ cond(pcm);
 rhs = (coupled_params - pcm(:, end - 3 : end) * [I332; m2; m2 * a2]);
 comp_decoup_params = pinv(pcm(:, 1 : end - 4)) * rhs;
 
-actual_computed_decoupled = [actual_decoupled_params, comp_decoup_params]
-% error_params = comp_decoup_params - actual_decoupled_params
-% compare1 = [pcm(:, 1 : end - 4) * actual_decoupled_params, rhs]
-% error_rhs = pcm(:, 1 : end - 4) * actual_decoupled_params - rhs
+actual_computed_decoupled = [actual_decoupled_params, comp_decoup_params];
+error_params = comp_decoup_params - actual_decoupled_params;
+compare1 = [pcm(:, 1 : end - 4) * actual_decoupled_params, rhs];
+error_rhs = pcm(:, 1 : end - 4) * actual_decoupled_params - rhs;
 
 % Verification
 % pcm_lin_mtum = pcm;
 % pcm_lin_mtum([1,5,8,11,14], :) = [];
 % rref(pcm_lin_mtum);
 % rank(pcm_lin_mtum);
+    
+option_2 = [1 0 z12 0 l0sq z12;
+         0 1 z12 0 1 z12;
+         z21 z21 i22 z21 l1 z22;
+         0 0 z12 1 0 z12;
+         z21 z21 z22 z21 z21 i22;
+         1 0 z12 1 l1sq l1.'
+         z21 z21 i22 z21 l1 R2]
