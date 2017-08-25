@@ -49,9 +49,9 @@ function [Ka1_error, Ka2_error, Ka3_error] = compute_coeff_error(case_name, glob
         Ka3_comp(:, curr_link_index - 1) = club_ld_coeffs(K13_comp(:, curr_link_index - 1), ...
                                         K23_comp(:, curr_link_index - 1));
         
-        Ka1_act(:, curr_link_index - 1) = eliminate_nosiy_coeffs(act_coeffs_mat(1 : 11, 12));
-        Ka2_act(:, curr_link_index - 1) = eliminate_nosiy_coeffs(act_coeffs_mat(1 : 10, 17));
-        Ka3_act(:, curr_link_index - 1) = eliminate_nosiy_coeffs(act_coeffs_mat(1 : 10, 20));
+        Ka1_act(:, curr_link_index - 1) = elim_negligible_coeffs(act_coeffs_mat(1 : 11, 12));
+        Ka2_act(:, curr_link_index - 1) = elim_negligible_coeffs(act_coeffs_mat(1 : 10, 17));
+        Ka3_act(:, curr_link_index - 1) = elim_negligible_coeffs(act_coeffs_mat(1 : 10, 20));
         global_kin_mat(:, 1 : 10) = [];
     end
     Ka1_error = Ka1_act - Ka1_comp;
@@ -62,27 +62,25 @@ end
 function eff_ld_coeffs = club_ld_coeffs(set1, set2)
     lnt = length(set1);
     eff_ld_coeffs = zeros(lnt, 1);
-    for curr_coeff = 1 : lnt
-        if set1(curr_coeff) == 0  
-            eff_ld_coeffs(curr_coeff) = set2(curr_coeff);
-        elseif set2(curr_coeff) == 0
-            eff_ld_coeffs(curr_coeff) = set1(curr_coeff);
-        elseif set1(curr_coeff) == 0  || set1(curr_coeff) == 0 
-            eff_ld_coeffs(curr_coeff) = 0;
+    for coeff_idx = 1 : lnt
+        if set1(coeff_idx) == 0  
+            eff_ld_coeffs(coeff_idx) = set2(coeff_idx);
+        elseif set2(coeff_idx) == 0
+            eff_ld_coeffs(coeff_idx) = set1(coeff_idx);
+        elseif set1(coeff_idx) == 0  || set1(coeff_idx) == 0 
+            eff_ld_coeffs(coeff_idx) = 0;
         else
-            eff_ld_coeffs(curr_coeff) =  set1(curr_coeff);
+            eff_ld_coeffs(coeff_idx) =  set1(coeff_idx);
         end
     end     
 end
 
-function coeffs = eliminate_nosiy_coeffs(coeffs)
+function coeffs = elim_negligible_coeffs(coeffs)
     lnt = length(coeffs);
     eps = 10e-7;
-    for curr_coeff = 1 : lnt
-        if abs(coeffs(curr_coeff)) < eps
-            coeffs(curr_coeff) = 0;
+    for coeff_idx = 1 : lnt
+        if abs(coeffs(coeff_idx)) < eps
+            coeffs(coeff_idx) = 0;
         end
     end
 end
-            
-            
