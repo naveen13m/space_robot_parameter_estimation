@@ -1,4 +1,4 @@
-% ReDySim sys_ode. This module contains ODE of system under study
+% ReDySim sys_ode module contains ODE of system under study
 % Contributors of the native code: Dr. Suril Shah and Prof S. K. Saha @IIT Delhi
 % Code is modified to meet the requirements of this project
 

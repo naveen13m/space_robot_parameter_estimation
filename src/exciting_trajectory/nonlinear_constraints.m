@@ -20,7 +20,7 @@ function [c, ceq] = nonlinear_constraints(tr_par, th_l, th_u, dth_l, dth_u, ddth
     thdd_comp_min = min(ddth,[],2);
     thdd_comp_max = max(ddth,[],2);
 
-    % Inequality constraints
+    % Inequality constraints (c <= 0)
     % Checking if the position, vel and acc traj are within the limits (c <= 0)
     c = [th_comp_max - th_u;
          th_l - th_comp_min;
@@ -30,6 +30,6 @@ function [c, ceq] = nonlinear_constraints(tr_par, th_l, th_u, dth_l, dth_u, ddth
          ddth_l - thdd_comp_min];
     
     % Equality constraints (ceq = 0) 
+%     ceq = dth(:, 1);
     ceq = [];
 end
-

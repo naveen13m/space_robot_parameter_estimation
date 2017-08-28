@@ -3,10 +3,8 @@
 % Code is modified to meet the requirements of this project
 
 function cond_num_reg_mat = runinv(tr_par, base_sensor_base_frame_position_base_frame)
-    % Compute system's statevar
-    global A_eq b_eq
+%   Compute system's statevar
     tr_par
-    A_eq * tr_par.' - b_eq
     [yo, ti, tf, incr, rtol, atol]=initials();
     options = odeset('AbsTol', atol, 'RelTol', rtol, 'stats', 'on');
     [all_instants, base_state]=ode45(@sys_ode, ti:incr:tf, yo, options, tf, tr_par);
