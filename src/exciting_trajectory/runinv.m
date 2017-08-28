@@ -2,9 +2,10 @@
 % Contributors of the native code: Dr. Suril Shah and Prof S. K. Saha @IIT Delhi
 % Code is modified to meet the requirements of this project
 
-function cond_num_reg_mat = runinv(tr_par, base_sensor_base_frame_position_base_frame)
+function total_cost = runinv(tr_par, base_sensor_base_frame_position_base_frame)
 %   Compute system's statevar
-    tr_par
+    global iter cond_num_reg_mat inverse_signal_strength cost_value nonl_c;
+    iter = iter + 1;
     [yo, ti, tf, incr, rtol, atol]=initials();
     options = odeset('AbsTol', atol, 'RelTol', rtol, 'stats', 'on');
     [all_instants, base_state]=ode45(@sys_ode, ti:incr:tf, yo, options, tf, tr_par);
@@ -62,5 +63,9 @@ function cond_num_reg_mat = runinv(tr_par, base_sensor_base_frame_position_base_
         (base_sensor_base_frame_position_base_frame, statevar);
     global_kin_mat(1 : 12, :) = [];
     [reg_mat, ~] = reduce_gkm(global_kin_mat, is_planar);
-    cond_num_reg_mat = cond(reg_mat)
+    cond_num_reg_mat = cond(reg_mat);
+    inverse_signal_strength = compute_signal_strength([base_sensor_lin_velocity,...
+        base_com_ang_vel, joint_velocity]);
+    total_cost = cond_num_reg_mat + 3 * inverse_signal_strength; 
+    cost_value = total_cost;
 end
