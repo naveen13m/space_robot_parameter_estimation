@@ -1,4 +1,5 @@
 function [c, ceq] = nonlinear_constraints(tr_par, th_l, th_u, dth_l, dth_u, ddth_l, ddth_u)
+    global fileID iter A_eq b_eq cond_num_reg_mat inverse_signal_strength cost_value;
     num_links = inputs();
     num_joints = num_links - 1;
     [~, ti, tf, incr, ~, ~] = initials();
@@ -28,8 +29,47 @@ function [c, ceq] = nonlinear_constraints(tr_par, th_l, th_u, dth_l, dth_u, ddth
          dth_l - thd_comp_min
          thdd_comp_max - ddth_u;
          ddth_l - thdd_comp_min];
-    
+        
     % Equality constraints (ceq = 0) 
 %     ceq = dth(:, 1);
     ceq = [];
+    
+    % Store data into textfile for post-opti analysis
+    fprintf(fileID, 'Iter_index = %d\n', iter);
+    
+    lnt = length(tr_par);
+    fprintf(fileID, 'tr_par = [');
+    for i = 1 : lnt
+        fprintf(fileID, '%f, ', tr_par(i));
+    end
+    fprintf(fileID, ']\n');
+    
+    initial_vel = (A_eq * tr_par.' - b_eq).';
+    if (abs(initial_vel) < 0.0001)
+        fprintf(fileID, 'Linear satisfied = Yes\n');  
+    else
+        fprintf(fileID, 'Linear satisfied = No\n');  
+    end
+    lnt = length(initial_vel);
+    fprintf(fileID, 'v0 = [');
+    for i = 1 : lnt
+        fprintf(fileID, '%f, ', initial_vel(i));
+    end
+    fprintf(fileID, ']\n');
+    
+    if c < 0
+        fprintf(fileID, 'Nonlinear satisfied = Yes\n');  
+    else
+        fprintf(fileID, 'Nonlinear satisfied = No\n');  
+    end
+    lnt = length(c);
+    fprintf(fileID, 'c = [');
+    for i = 1 : lnt
+        fprintf(fileID, '%f, ', c(i));
+    end
+    fprintf(fileID, ']\n');
+    
+    fprintf(fileID, 'Con_no = %f, Signal = %f, Total cost = %f\n', cond_num_reg_mat,...
+        inverse_signal_strength, cost_value);
+    fprintf(fileID, '-------------------------------------------------------------\n');
 end
