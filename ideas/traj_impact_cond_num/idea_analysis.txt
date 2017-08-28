@@ -1,0 +1,19 @@
+Aim: To understand the joint trajectories in the condition number of reg mat
+
+Config params: Sensor is placed at [-0.2; -0.3; 0].
+
+Procedure: A planar 3-link system is taken for analysis. 
+Two cases of joint trajectories are considered. Both move in the same 
+direction in the first case and in the reverse direction in the second case. 
+Condition number of reg mat in each case is compared to that where both 
+reg mats are concatanated.
+
+Observation: In cases 1 & 2, even though the base was excited along all the
+three directions and joints moved along their axis, reg mat was ill-conditioned. 
+Just by concatnating reg mats, the cond num redued 10^6 times.
+
+Conclusion: It is desirable to minimize the condition number even though
+an initial guess of the parameters is required. Above results suggests that,
+optimization is necessary to reduce cond num from such high orders only 
+and not for micro optimization. So, even an extremely off parameters shouldn't
+be an issue to reduce cond num by so many levels.
