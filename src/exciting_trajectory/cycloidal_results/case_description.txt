@@ -1,0 +1,2 @@
+Case 1: cn + invers_signal_strength
+Case 2: cn
