@@ -4,7 +4,7 @@
 
 function total_cost = runinv(tr_par, base_sensor_base_frame_position_base_frame)
 %   Compute system's statevar
-    global iter cond_num_reg_mat inverse_signal_strength cost_value nonl_c;
+    global iter cond_num_reg_mat inverse_signal_strength cost_value mtum_conserved;
     iter = iter + 1;
     [yo, ti, tf, incr, rtol, atol]=initials();
     options = odeset('AbsTol', atol, 'RelTol', rtol, 'stats', 'on');
@@ -62,10 +62,28 @@ function total_cost = runinv(tr_par, base_sensor_base_frame_position_base_frame)
     global_kin_mat = global_kinematic_matrix_modified...
         (base_sensor_base_frame_position_base_frame, statevar);
     global_kin_mat(1 : 12, :) = [];
-    [reg_mat, ~] = reduce_gkm(global_kin_mat, is_planar);
+    [reg_mat, out_vec] = reduce_gkm(global_kin_mat, is_planar);
     cond_num_reg_mat = cond(reg_mat);
-    inverse_signal_strength = compute_signal_strength([base_sensor_lin_velocity,...
-        base_com_ang_vel, joint_velocity]);
-    total_cost = cond_num_reg_mat + 3 * inverse_signal_strength; 
+    sensor_signal = [base_sensor_lin_velocity,...
+        base_com_ang_vel, joint_velocity];
+    if is_planar
+        sensor_signal(:, [3, 4, 5]) = [];
+    end
+    inverse_signal_strength = compute_signal_strength(sensor_signal);
+    total_cost = cond_num_reg_mat + inverse_signal_strength; 
     cost_value = total_cost;
+    
+%     verification
+    param_vec = [88.61,520,10,0,14.55,15,0,4,5,0].';
+    mtum = reg_mat * param_vec([1, 3 : end]) - param_vec(2) * out_vec;
+%     subplot(1, 3, 1);
+%     plot(mtum(1 : 3 : end));
+%     subplot(1, 3, 2);
+%     plot(mtum(2 : 3 : end));
+%     subplot(1, 3, 3);
+%     plot(mtum(3 : 3 : end));
+    mtum_conserved = 0;
+    if abs(mtum) < 10e-3
+        mtum_conserved = 1;
+    end
 end
