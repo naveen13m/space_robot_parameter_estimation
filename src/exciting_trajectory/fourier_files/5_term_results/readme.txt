@@ -1,0 +1,2 @@
+opti_data1.txt: 5 term fourier. Cost is cond. Extra term for 0 initial velocity  (10 - 11 hrs)
+opti_data2.txt: 5 term fourier. Cost is cond + 5 * inverse signal strength. Extra term for 0 initial velocity  (9 - 10 hrs)

@@ -1,0 +1,2 @@
+opti_data1.txt: 3 term fourier. Cost is cond + 8 * inverse signal strength. Linear constraints in Aeq and beq - hr
+opti_data2.txt: 3 term fourier. Cost is cond. Linear constraints in Aeq and beq - 4 hrs
