@@ -26,3 +26,12 @@ C(7+n), C(8+n), C(9+n): x, y, and z velocities of the base<br />
 C(10+n), C(11+n), C(12+n): Rates of euler angles of the base<br />
 C(13+n) to C(13+2n-1): Joint velocities<br />
 C(13+2n): Total energy of the system<br />
+
+# Add common functions path to matlab search path
+In the Matlab command window, find out the matlab root folder
+>> matlabroot 
+In the terminal, move the folder which has matlabrc.m file which is run on matlab startup
+$ cd matlabroot/toolbox/local
+Allow user to edit matlabrc.m
+Add the following command to the last line of the file
+addpath(location_to_common_funtions_directory)
