@@ -29,9 +29,9 @@ C(13+2n): Total energy of the system<br />
 
 # Add common functions path to matlab search path
 In the Matlab command window, find out the matlab root folder
->> matlabroot 
-In the terminal, move the folder which has matlabrc.m file which is run on matlab startup
-$ cd matlabroot/toolbox/local
+matlabroot 
+In the terminal, move to the folder which has matlabrc.m file
+cd matlabroot/toolbox/local
 Allow user to edit matlabrc.m
 Add the following command to the last line of the file
 addpath(location_to_common_funtions_directory)
