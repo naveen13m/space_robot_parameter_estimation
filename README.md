@@ -28,10 +28,10 @@ C(13+n) to C(13+2n-1): Joint velocities<br />
 C(13+2n): Total energy of the system<br />
 
 # Add common functions path to matlab search path
-In the Matlab command window, find out the matlab root folder
-matlabroot 
-In the terminal, move to the folder which has matlabrc.m file
-cd matlabroot/toolbox/local
-Allow user to edit matlabrc.m
-Add the following command to the last line of the file
-addpath(location_to_common_funtions_directory)
+In the Matlab command window, find out the matlab root folder <br />
+matlabroot <br />
+In the terminal, move to the folder which has matlabrc.m file <br />
+cd matlabroot/toolbox/local <br />
+Allow user to edit matlabrc.m <br />
+Add the following command to the last line of the file <br />
+addpath(location_to_common_funtions_directory) <br />
