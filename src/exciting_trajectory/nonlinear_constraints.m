@@ -1,4 +1,4 @@
-function [c, ceq] = nonlinear_constraints(tr_par, min_vel, max_vel, min_acc, max_acc)
+function [c, ceq] = nonlinear_constraints(tr_par, num_intervals_each_joint, min_vel, max_vel, min_acc, max_acc)
     global fileID iter cond_num_reg_mat inverse_signal_strength cost_value mtum_conserved A_ineq b_ineq;
     num_links = inputs();
     num_joints = num_links - 1;
@@ -16,7 +16,7 @@ function [c, ceq] = nonlinear_constraints(tr_par, min_vel, max_vel, min_acc, max
     time_params = [];
         
     for curr_joint = 1 : num_joints
-        num_intervals_each_joint = 2 ^ (num_joints - 1);
+%         num_intervals_each_joint = 2 ^ (num_joints - 1);
         num_curr_joint_coeff_params = num_intervals_each_joint + 1;
         num_terms_till_curr_joint = num_curr_joint_coeff_params * (curr_joint - 1);
         for curr_interval = 1 : num_intervals_each_joint

@@ -2,7 +2,7 @@
 % Contributors of the native code: Dr. Suril Shah and Prof S. K. Saha @IIT Delhi
 % Code is modified to meet the requirements of this project
 
-function dy=sys_ode(t, y, tf, tr_par)
+function dy=sys_ode(t, y, tf, tr_par, num_intervals_each_joint)
 
 %Model parameter
 [n, nq, alp, a, b, bt, dx, dy, dz, al, alt, m, g,  Icxx, Icyy, Iczz,...
@@ -13,7 +13,7 @@ dq=y(6+1:2*6);
 % disp(t);
 
 % Trajectories
-[th_d, dth_d, ddth_d]=trajectory(t, n, tf, tr_par);
+[th_d, dth_d, ddth_d]=trajectory(t, n, tf, tr_par, num_intervals_each_joint);
 
 % % C+Tug- TERM USING INVERSE DYNAMIC ALGORITHM
 th=[0;th_d];

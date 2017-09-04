@@ -2,13 +2,14 @@
 % Contributors of the native code: Dr. Suril Shah and Prof S. K. Saha @IIT Delhi
 % Code is modified to meet the requirements of this project
 
-function total_cost = runinv(tr_par, base_sensor_base_frame_position_base_frame)
+function total_cost = runinv(tr_par, num_intervals_each_joint, base_sensor_base_frame_position_base_frame)
 %   Compute system's statevar
     global iter cond_num_reg_mat inverse_signal_strength cost_value mtum_conserved;
     iter = iter + 1;
     [yo, ti, tf, incr, rtol, atol]=initials();
     options = odeset('AbsTol', atol, 'RelTol', rtol, 'stats', 'on');
-    [all_instants, base_state]=ode45(@sys_ode, ti:incr:tf, yo, options, tf, tr_par);
+    [all_instants, base_state]=ode45(@sys_ode, ti:incr:tf, yo, options, tf,...
+        tr_par, num_intervals_each_joint);
     [num_links, not_planar] = inputs();
     is_planar = 1 - not_planar;
     num_instants = length(all_instants);
@@ -24,7 +25,7 @@ function total_cost = runinv(tr_par, base_sensor_base_frame_position_base_frame)
         curr_time = all_instants(curr_instant);
         [joint_position(1 : num_joints, curr_instant), ...
             joint_velocity(1 : num_joints, curr_instant)] = ...
-        trajectory(curr_time, num_joints + 1, tf, tr_par);
+        trajectory(curr_time, num_joints + 1, tf, tr_par, num_intervals_each_joint);
     end
     joint_position = joint_position.';
     joint_velocity = joint_velocity.';

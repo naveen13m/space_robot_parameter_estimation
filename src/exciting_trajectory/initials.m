@@ -1,4 +1,4 @@
-function [y0, ti, tf, incr, rtol, atol] = initials()
+function [y0, ti, tf, incr, rtol, atol, vel_combi_mat] = initials()
     ti=0; tf=20;
     n = inputs();
 
@@ -16,4 +16,8 @@ function [y0, ti, tf, incr, rtol, atol] = initials()
     incr=0.1;
     rtol=1e-5;         %relative tolerance in integration 
     atol=1e-7;         %absolute tolerances in integration
+    
+    % Velocity combination matrix for traj optimization
+    vel_combi_mat = [1 1 
+                     1 0];
 end
