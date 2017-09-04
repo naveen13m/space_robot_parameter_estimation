@@ -1,5 +1,5 @@
-function [thi, thf, curr_time] = get_joint_interval_params(tr_par, curr_time, Tp, curr_joint, num_joints)
-    num_intervals_each_joint = 2 ^ (num_joints - 1);
+function [thi, thf, curr_time] = get_joint_interval_params(tr_par, ...
+    num_intervals_each_joint, curr_time, Tp, curr_joint)
     num_terms_each_joint = num_intervals_each_joint + 1;
     num_terms_till_curr_joint = num_terms_each_joint * (curr_joint - 1);
     time_params = repmat(Tp, 1, num_intervals_each_joint);
