@@ -8,7 +8,7 @@ The data files are generated and also copied to test_case_data/robot_make/sim_da
 The argument is the sensor coordinates seen in the base CoM frame (ReDySim frame) <br />
 The transformed data is stored in test_case_data/{robot_make}/sim_real_data <br />
 - From src/ , execute run_me <br />
-Before executing, make sure that the robot_make and the same sensor coordinates are same as the ones used for simdata_to_realdata
+Before executing, make sure that the robot_make and the sensor coordinates are same as the ones used for simdata_to_realdata
 
 # .dat files indexing
 Note: All the data is in SI units<br />
