@@ -1,30 +1,10 @@
-function [reg_mat_case, output_vec] = run_me()
+function [reg_mat, out_vec] = run_me(robot_make, ...
+                                base_sensor_base_frame_position_base_frame)
     close all; clc;
 
 %     dbstop in global_kinematic_matrix.m  at 196
-%     Configuration parameters
-%     robot_make = '/1_link_rw';
-%     robot_make = '/1_link_2rw';
-%     robot_make = '/2_link';
-%     robot_make = '/2_link_mrw';
-%     robot_make = '/3_link';
-%     robot_make = '/3_link_rw';
-%     robot_make = '/4_link';
-%     robot_make = '/4_link_spatial';
-%     robot_make = '/8_link';
-%     robot_make = '/dual_arm';
-    robot_make = '/dual_arm_articulate';
-%     robot_make = '/2_link_rw';
-%     robot_make = '/temp';
-%     robot_make = '/static_base';
 
     sim_data = 1;
-
-    if sim_data
-%         base_sensor_base_frame_position_base_frame = [0; 0; 0];
-        base_sensor_base_frame_position_base_frame = [-0.2; -0.3; 0];
-    %     base_sensor_base_frame_position_base_frame = [0.1; 0.2; 0];
-    end
     data_dir = {'/experimental_data', '/sim_real_data'};
     experimental_data_filename = {'/statevar.dat', '/timevar.dat'};
     real_data_filename = {'/statevar.dat', '/timevar.dat', '/mtvar.dat'};
@@ -55,10 +35,8 @@ function [reg_mat_case, output_vec] = run_me()
         inertia_zx_com, link_mass, link_x_com, link_y_com, link_z_com, num_links);
     num_instants = size(statevar, 1);
 
-    % Populate the linear momentum regressor matrix
     global_kin_mat = global_kinematic_matrix(robot_make, ...
         base_sensor_base_frame_position_base_frame, statevar, mtvar);
-    [rref_global_kin_mat, base_col_index] = rref(global_kin_mat);
     [reg_mat, out_vec] = reduce_gkm(global_kin_mat, is_planar);
     minimal_param_vec = compute_minimal_param_vector(robot_make, base_sensor_base_frame_position_base_frame);
 
