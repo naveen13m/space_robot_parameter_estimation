@@ -35,3 +35,9 @@ cd matlabroot/toolbox/local <br />
 Allow user to edit matlabrc.m <br />
 Add the following command to the last line of the file <br />
 addpath(location_to_common_funtions_directory) <br />
+
+# Generate case wise regressor matrices
+Generate the configuration files for every case in the designated location <br />
+execute case_wise_reg_mat with the relevant inputs
+
+
