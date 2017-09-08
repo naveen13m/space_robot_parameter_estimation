@@ -40,7 +40,8 @@ function [reg_mat, out_vec] = run_me(robot_make, ...
     [reg_mat, out_vec] = reduce_gkm(global_kin_mat, is_planar);
     minimal_param_vec = compute_minimal_param_vector(robot_make, base_sensor_base_frame_position_base_frame);
 
-    mtum = reg_mat * minimal_param_vec([1 : 6, 8 : end]) - minimal_param_vec(7) * out_vec;
+%     mtum = reg_mat * (minimal_param_vec([1 : 6, 8 : end])/minimal_param_vec(7)) - out_vec;
+    mtum = reg_mat * minimal_param_vec - out_vec;
     figure;
     subplot(2, 3, 1);
     plot(mtum(1 : 6 : end));

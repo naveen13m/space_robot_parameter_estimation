@@ -80,7 +80,9 @@ function minimal_param_vec = compute_minimal_param_vector(robot_make, base_senso
         eliminate_elements_index = [eliminate_elements_index, ...
             base_Iyy_z_com_indices, Ixx_index, Ixy_index, Iyz_index, Ixz_index];
         minimal_param_vec(eliminate_elements_index, :) = [];
+        minimal_param_vec = (minimal_param_vec([1, 3 : end])/minimal_param_vec(2));
     else
         minimal_param_vec(eliminate_elements_index, :) = [];
+        minimal_param_vec = (minimal_param_vec([1 : 6, 8 : end])/minimal_param_vec(7));
     end 
 end
