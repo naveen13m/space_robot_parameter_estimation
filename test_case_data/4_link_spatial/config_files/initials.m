@@ -5,7 +5,7 @@ function [y0, ti, tf, incr, rtol, atol]=initials()
 
 %Simulation time
 ti=0;
-tf=3;
+tf=20;
 
 %Inverse kinematics for obtaining initial configuration
 [n]=inputs();
@@ -21,6 +21,6 @@ acten=0;
 y0=[q; dq; acten];
 
 %INTERATION TOLERANCES
-incr=0.01;
+incr=0.1;
 rtol=1e-5;         %relative tolerance in integration 
 atol=1e-7;         %absolute tolerances in integration 

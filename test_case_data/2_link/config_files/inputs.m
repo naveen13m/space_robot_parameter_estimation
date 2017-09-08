@@ -3,7 +3,7 @@
 
 function [n nq alp a b bt dx dy dz al alt m g  Icxx Icyy Iczz Icxy Icyz Iczx]=inputs()
 
-% 3 Link Manipulator
+% 1 Link Manipulator
 %NO. OF LINKS
 n=2;
 

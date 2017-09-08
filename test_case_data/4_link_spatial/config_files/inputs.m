@@ -3,7 +3,7 @@
 
 function [n nq alp a b bt dx dy dz al alt m g  Icxx Icyy Iczz Icxy Icyz Iczx]=inputs()
 
-% 7 Link Manipulator
+% 4-Link spatial system
 %NO. OF LINK
 n=4;
 nq=1;%1 for spatial and 0 for planar
@@ -11,7 +11,7 @@ nq=1;%1 for spatial and 0 for planar
 %  dh=[al b alp th];
 alp=[0; pi/2; pi/2; pi/2];
 a=[  0; 0.5; 1; 1];
-b=[  0; 0; 0; 0];
+b=[  0; 0;   0; 0];
 %Parent array bt and corrosponding vectors
 bt=[0 1 2 3];
 
@@ -29,14 +29,14 @@ dy=ay/2;
 dz=az/2;
 
 %MASS
-m=[1000; 100; 100; 100];
+m=[500; 10; 10; 10];
 % g=[0 ; -9.81; 0];
  g=[0 ; 0; 0];
 
 %MOMENT OF INERTIA
 Icxx=zeros(n,1);Icyy=zeros(n,1);Iczz=zeros(n,1); % Initialization 
 Icxy=zeros(n,1);Icyz=zeros(n,1);Iczx=zeros(n,1); % Initialization 
-Icxx(1)=1200;  Icyy(1)=1200; Iczz(1)=1200;
-Icxx(2)=120;   Icyy(2)=120;  Iczz(2)=120;
-Icxx(3)=120;   Icyy(3)=120;  Iczz(3)=120;
-Icxx(4)=120;   Icyy(4)=120;  Iczz(4)=120;
+Icxx(1)=83.61;  Icyy(1)=83.61; Iczz(1)=83.61;
+Icxx(2)=0.1;   Icyy(2)=2.05;  Iczz(2)=2.05;
+Icxx(3)=0.1;   Icyy(3)=1.5;  Iczz(3)=1.5;
+Icxx(4)=0.1;   Icyy(4)=1.05;  Iczz(4)=1.05;

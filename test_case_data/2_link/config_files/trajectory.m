@@ -6,7 +6,7 @@ function [th_d dth_d ddth_d]=trajectory(t, n, tf)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 1: Joint level trejectory: Cycloidal motion
 thin=[0];%60
-thf=[10 * pi];
+thf=[5 * pi];
 Tp=tf;
 for i=1:n-1
     thi(i,1)=thin(i)+((thf(i)-thin(i))/Tp)*(t-(Tp/(2*pi))*sin((2*pi/Tp)*t));
