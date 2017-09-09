@@ -90,9 +90,10 @@ function [Ib, Ibm] = compute_Ib_Ibm(base_pose, joint_position, num_links, ...
     Hw = zeros(3, 3);
     Ii = zeros(3, 3, num_links);
     for curr_link = 1 : num_links
-        Ii(:, :, curr_link) = [Icxx(curr_link), Icxy(curr_link), Iczx(curr_link);
-                               Icxy(curr_link), Icyy(curr_link), Icyz(curr_link);
-                               Iczx(curr_link), Icyz(curr_link), Iczz(curr_link)];
+        Ii_cm = [Icxx(curr_link), Icxy(curr_link), Iczx(curr_link);
+                 Icxy(curr_link), Icyy(curr_link), Icyz(curr_link);
+                 Iczx(curr_link), Icyz(curr_link), Iczz(curr_link)];
+        Ii(:, :, curr_link) = rot_mat_link(:, :, curr_link) * Ii_cm * rot_mat_link(:, :, curr_link).';
         r0i_tilde = vec_to_mat(link_com_base_frame_position(:, curr_link));
         Hw = Hw + Ii(:, :, curr_link) + link_mass(curr_link) * (r0i_tilde.' * r0i_tilde);
     end
@@ -100,8 +101,8 @@ function [Ib, Ibm] = compute_Ib_Ibm(base_pose, joint_position, num_links, ...
     r0g_tilde = vec_to_mat(sys_com_base_frame_position);
     
     % Ib assembly
-    Ib = [M * eye(3)    , M * r0g_tilde.'; 
-          M * r0g_tilde , Hw            ];
+    Ib = [M * eye(3)   , M * r0g_tilde.'; 
+          M * r0g_tilde, Hw            ];
     
     % Compute jacobian
     jacob_rot_manip = zeros(3, num_joints, num_joints);
