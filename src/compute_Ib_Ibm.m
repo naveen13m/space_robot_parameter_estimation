@@ -40,7 +40,6 @@ function [Ib, Ibm] = compute_Ib_Ibm(base_pose, joint_position, num_links, ...
             rot_mat_link_prev_link_frame(:, :, curr_link);
         rot_mat_link(:, :, curr_link);
     end
-
     
     % Compute link frame position vector
     link_frame_position(:, 1) = base_sensor_position;
@@ -82,6 +81,7 @@ function [Ib, Ibm] = compute_Ib_Ibm(base_pose, joint_position, num_links, ...
              link_frame_position(:, curr_link) + link_com_link_frame_position;
     end
     sys_com = link_com * link_mass / sum(link_mass);
+%     plot3(sys_com(1), sys_com(2), sys_com(3), 'k.'); hold on;
     
     sys_com_base_frame_position = sys_com - link_frame_position(:, 1);
     link_com_base_frame_position = link_com - repmat(link_frame_position(:, 1), 1, num_links);
@@ -107,13 +107,16 @@ function [Ib, Ibm] = compute_Ib_Ibm(base_pose, joint_position, num_links, ...
     % Compute jacobian
     jacob_rot_manip = zeros(3, num_joints, num_joints);
     jacob_trans_manip = zeros(3, num_joints, num_joints);
-    for curr_joint = 1 : num_joints
-        for iter_joint = 1 : curr_joint
-            jacob_rot_manip(:, iter_joint, curr_joint) = rot_mat_link(:, 3, iter_joint + 1);
-            jacob_trans_manip(:, iter_joint, curr_joint) = ...
-                cross(jacob_rot_manip(:, iter_joint, curr_joint),...
-                      (link_com(:, curr_joint + 1) - ...
-                      link_frame_position(:, iter_joint + 1)));
+    for curr_arm = 1 : num_arms
+        for curr_link = arm_initial_link_index(curr_arm) : arm_terminal_link_index(curr_arm)
+            curr_joint = curr_link - 1;
+            for iter_link = arm_initial_link_index(curr_arm) : curr_link
+                iter_joint = iter_link - 1;
+                jacob_rot_manip(:, iter_joint, curr_joint) = rot_mat_link(:, 3, iter_link);
+                jacob_trans_manip(:, iter_joint, curr_joint) = ...
+                    cross(jacob_rot_manip(:, iter_joint, curr_joint),...
+                    (link_com(:, curr_joint + 1) - link_frame_position(:, iter_joint + 1)));
+            end
         end
     end
     
