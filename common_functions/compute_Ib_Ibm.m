@@ -1,4 +1,4 @@
-function [Ib, Ibm] = compute_Ib_Ibm(base_pose, joint_position, num_links, ...
+function [Ib, Ibm, Ib_tilde, Ibm_tilde] = compute_Ib_Ibm(base_pose, joint_position, num_links, ...
                                 joint_twist, link_length_DH, joint_offset, ...
                                 parent_link_index, link_x_com, link_y_com, ...
                                 link_z_com, link_mass, Icxx, Icyy, Iczz, Icxy, ...
@@ -13,7 +13,7 @@ function [Ib, Ibm] = compute_Ib_Ibm(base_pose, joint_position, num_links, ...
     base_sensor_position = base_pose(1 : 3);
     base_sensor_orientation = base_pose(4 : 6); % ZXY order
     
-    % Regressor matrix data initialization
+    % Data initialization
     rot_mat_link_prev_link_frame = zeros(3, 3, num_links);
     rot_mat_link = zeros(3, 3, num_links);
     link_frame_position = zeros(3, num_links);
@@ -103,6 +103,7 @@ function [Ib, Ibm] = compute_Ib_Ibm(base_pose, joint_position, num_links, ...
     % Ib assembly
     Ib = [M * eye(3)   , M * r0g_tilde.'; 
           M * r0g_tilde, Hw            ];
+    Ib_tilde = Hw - M * r0g_tilde * r0g_tilde.';
     
     % Compute jacobian
     jacob_rot_manip = zeros(3, num_joints, num_joints);
@@ -135,4 +136,5 @@ function [Ib, Ibm] = compute_Ib_Ibm(base_pose, joint_position, num_links, ...
     % Ibm assembly
     Ibm = [JTg;
            Hwphi];
+    Ibm_tilde = Hwphi - r0g_tilde * JTg;   
 end
