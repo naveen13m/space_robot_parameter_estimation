@@ -1,18 +1,9 @@
-function minimal_param_vec = compute_minimal_param_vector(robot_make, base_sensor_base_frame_position_base_frame)
-    curr_dir = pwd;
-    cd(strcat('../test_case_data', robot_make, '/config_files'));
-    [num_links, not_planar, joint_twist, link_length_DH, ...
-        joint_offset, parent_link_index, link_x_com, link_y_com, link_z_com, ...
-        ~, ~, link_mass, ~, inertia_xx_com, inertia_yy_com, inertia_zz_com, ...
-        inertia_xy_com, inertia_yz_com, inertia_zx_com] = inputs();
+function minimal_param_vec = compute_minimal_param_vector(decoupled_param_vec, ...
+                                num_links, not_planar, joint_twist, link_length_DH, ...
+                                joint_offset, parent_link_index, base_sensor_base_frame_position_base_frame)
+    
     is_planar = 1 - not_planar;
-    cd(curr_dir);
-    link_x_com(1) = -base_sensor_base_frame_position_base_frame(1);
-    link_y_com(1) = -base_sensor_base_frame_position_base_frame(2);
-    link_z_com(1) = -base_sensor_base_frame_position_base_frame(3);
-    decoupled_param_vec = construct_dyn_param_vector(...
-        inertia_xx_com, inertia_yy_com, inertia_zz_com, inertia_xy_com, inertia_yz_com,...
-        inertia_zx_com, link_mass, link_x_com, link_y_com, link_z_com, num_links);
+    
     minimal_param_vec = decoupled_param_vec;
     
     arm_initial_link_index = find(parent_link_index == 1);
@@ -30,7 +21,7 @@ function minimal_param_vec = compute_minimal_param_vector(robot_make, base_senso
         eliminate_elements_index = [eliminate_elements_index, Iyy_indices, mass_indices, z_com_indices];
         for curr_link_index = arm_link_indices
             parent_link = parent_link_index(curr_link_index);
-            % Compute coefficients for bacward iteration
+            % Compute coefficients using backward iteration
             link_length = [link_length_DH(curr_link_index);
                          -joint_offset(curr_link_index) * ...
                           sin(joint_twist(curr_link_index)); ...
