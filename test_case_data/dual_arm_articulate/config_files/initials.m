@@ -2,10 +2,10 @@ function [y0, t_initial, t_final, incr, rtol, atol, vel_combi_mat]=initials()
 
 %Simulation time
 t_initial=0;
-t_final=20;
+t_final=64;
 
 %Inverse kinematics for obtaining initial configuration
-[n]=inputs();
+num_links=inputs();
 
 %Base motions
 q=[0; 0; 0; 0; 0; 0];
@@ -18,11 +18,9 @@ acten=0;
 y0=[q; dq; acten];
 
 %INTERATION TOLERANCES
-incr=0.1;
+incr=0.2;
 rtol=1e-5;         %relative tolerance in integration 
 atol=1e-7;         %absolute tolerances in integration 
 
-vel_combi_mat = [1 1 1 1 1 1;
-                 1 1 0 1 1 0;
-                 1 0 1 1 0 1;
-                 1 0 0 1 0 0]; 
+num_joints = num_links - 1;
+vel_combi_mat = generate_vel_combi_mat(num_joints);

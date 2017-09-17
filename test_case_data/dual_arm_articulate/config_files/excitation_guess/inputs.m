@@ -19,36 +19,25 @@ al=[1; 1; 1; 1; 1; 1; 1];
 alt=[0.5; 1; 1; 1; 1; 1; 1];
 
 %ENTER VECTOR dm
-% dx=[  0   0.6    0.4    0.7   0.55   0.45   0.35];
-% dy=[  0   0.05  -0.04   0.4   0.04   0.05  -0.05];
-% dz=[  0  -0.07  -0.05   0.3  -0.04   0.05  -0.05];
-dx=[  0   0.6    0.4    0.7   0.55   0.45   0.35];
-dy=[  0   0      0      0.4     0      0      0];
-dz=[  0   0      0      0.3     0      0      0];
+dx=[  0    al(2)/2  al(3)/2  al(4)/2  al(5)/2  al(6)/2  al(7)/2 ];
+dy=[  0       0       0       0           0       0       0];
+dz=[  0       0       0       0           0       0       0];
 
 %MASS
-m=[2000; 50; 50; 50; 50; 50; 50];
+m=[500; 25; 15; 10; 20; 17; 12];
 % g=[0 ; 9.81; 0];
  g=[0 ; 0; 0];
 
 %MOMENT OF INERTIA
 Icxx=zeros(n,1);Icyy=zeros(n,1);Iczz=zeros(n,1); % Initialization 
 Icxy=zeros(n,1);Icyz=zeros(n,1);Iczx=zeros(n,1); % Initialization 
-Icxx(1)=1200;  Icyy(1)=1200; Iczz(1)=1200;
-Icxx(2)=2.18;   Icyy(2)=1.89;  Iczz(2)=20.51;
-Icxx(3)=1.15;   Icyy(3)=1.68;  Iczz(3)=18.67;
-Icxx(4)=24.45;   Icyy(4)=28.56;  Iczz(4)=35.53;
-Icxx(5)=1.85;   Icyy(5)=1.62;  Iczz(5)=17.05;
-Icxx(6)=1.55;   Icyy(6)=1.84;  Iczz(6)=14.28;
-Icxx(7)=1.24;   Icyy(7)=1.45;  Iczz(7)=10.77;
-
-Icxy(1)=35.52;  Icyz(1)=40.45; Iczx(1)=45.71;
-Icxy(2)=1.9;   Icyz(2)=1.65;  Iczx(2)=2.5;
-Icxy(3)=1.61;   Icyz(3)=1.75;  Iczx(3)=1.5;
-Icxy(4)=6.78;   Icyz(4)=9.1;  Iczx(4)=10.23;
-Icxy(5)=1.5;   Icyz(5)=1.35;  Iczx(5)=3.21;
-Icxy(6)=1.23;   Icyz(6)=1.55;  Iczx(6)=1.27;
-Icxy(7)=1.1;   Icyz(7)=1.52;  Iczx(7)=1.67;
+Icxx(1)=83.61;  Icyy(1)=83.61; Iczz(1)=83.61;
+Icxx(2)=0.05;   Icyy(2)=0.05;  Iczz(2)=2.5;
+Icxx(3)=0.03;   Icyy(3)=0.03;  Iczz(3)=1.5;
+Icxx(4)=0.02;   Icyy(4)=0.02;  Iczz(4)=1;
+Icxx(5)=0.05;   Icyy(5)=0.05;  Iczz(5)=3;
+Icxx(6)=0.03;   Icyy(6)=0.03;  Iczz(6)=1.2;
+Icxx(7)=0.02;   Icyy(7)=0.02;  Iczz(7)=1;
 
 if add_rw
 	n = n + 1;

@@ -11,8 +11,8 @@ thin=[0; 0; 0; pi; 0; 0];%60
 thf=[pi/2; pi/6; -pi/6;  pi/2;  -pi/4; pi/4];
 
 if add_rw
-	thin = [thin; pi; pi];
-	thf = [thf; 7 * pi; 7 * pi];
+	thin = [thin; pi];
+	thf = [thf; 7 * pi];
 end
 
 Tp=tf;

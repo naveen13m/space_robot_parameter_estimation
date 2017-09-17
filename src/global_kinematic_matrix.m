@@ -1,6 +1,9 @@
 function global_kin_mat = global_kinematic_matrix(robot_make,...
                      base_sensor_base_frame_position_base_frame, ...
                      statevar, mtvar)
+                 
+    % Filter kinematic data
+    statevar = filter_kin_data(statevar);
     
     % Load robot structural and dynamic parameter data
     curr_dir = pwd;
@@ -143,7 +146,6 @@ function global_kin_mat = global_kinematic_matrix(robot_make,...
     
     % Regressor matrix assembly
     num_equs = 6;
-%     num_equs = 9; %If CoM equs are included
     num_link_params = 10;
     global_kin_mat = zeros(num_equs * num_instants, num_link_params * num_links);
     for curr_instant = 1 : num_instants
@@ -161,7 +163,6 @@ function global_kin_mat = global_kinematic_matrix(robot_make,...
                 vec_to_mat(submatrix_12)) * rot_mat_link(:, :, curr_instant, curr_link_index);
             link_kin_mat = [submatrix_11, submatrix_12, submatrix_13; ...
                             submatrix_21, submatrix_22, submatrix_23];
-%                         submatrix_31, submatrix_32, submatrix_33];
             system_kin_mat(:, num_link_params * (curr_link_index - 1) + 1 :...
                 num_link_params * curr_link_index) = link_kin_mat;
         end

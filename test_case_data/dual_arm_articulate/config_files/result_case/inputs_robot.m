@@ -2,7 +2,7 @@ function [n nq alp a b bt dx dy dz al alt m g  Icxx Icyy Iczz Icxy Icyz Iczx]=in
 
 % 7-link system
 %NO. OF LINKS
-add_rw = 1;
+add_rw = 0;
 n=7;
 nq=1;%1 for spatial and 0 for planar
 %ENTER DH PARAMETER HERE   

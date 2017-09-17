@@ -12,13 +12,13 @@ function simdata_to_realdata(robot_make, ...
     % Compute base sensor data in the modified inertial frame
     num_instants = length(timevar);
     cd(strcat(curr_dir, robot_make, '/config_files'));
-    num_links_with_base = inputs();
-    num_links_without_base = num_links_with_base - 1;
+    num_links = inputs();
+    num_joints = num_links - 1;
     cd(curr_dir);
     base_com_position = statevar(:, 1 : 3);
     base_com_orientation = statevar(:, 4 : 6);
-    base_com_lin_vel = statevar(:, 7 + num_links_without_base : 9 + num_links_without_base);
-    base_com_eul_rates = statevar(:, 10 + num_links_without_base : 12 + num_links_without_base);
+    base_com_lin_vel = statevar(:, 7 + num_joints : 9 + num_joints);
+    base_com_eul_rates = statevar(:, 10 + num_joints : 12 + num_joints);
     base_sensor_position = zeros(num_instants, 3);
     base_sensor_lin_velocity = zeros(num_instants, 3);
     base_com_ang_vel = zeros(num_instants, 3);
@@ -46,26 +46,34 @@ function simdata_to_realdata(robot_make, ...
     
     % Save computed sensor position and velocity into statevar
     statevar(:, 1:3) = base_sensor_position;
-    statevar(:, 7 + num_links_without_base : 9 + num_links_without_base)...
+    statevar(:, 7 + num_joints : 9 + num_joints)...
         = base_sensor_lin_velocity;
-    statevar(:, 10 + num_links_without_base : 12 + num_links_without_base)...
+    statevar(:, 10 + num_joints : 12 + num_joints)...
         = base_com_ang_vel;
     
+    figure;
+    plot_data = [base_sensor_position, base_com_orientation, base_sensor_lin_velocity, base_com_ang_vel];
+    for i = 1 : 12
+        subplot(3, 4, i);
+        plot(plot_data(:, i));
+        hold on;
+    end
+    
     % Add noise to kinematic data
-    add_noise = 0;
-    base_sensor_position_std_dev = 1;
-    base_sensor_orientation_std_dev = 1;
-    joint_postion_std_dev = 1;
-    base_lin_vel_std_dev = 1;
-    base_ang_vel_std_dev = 1;
-    joint_velocity_std_dev = 1;
+    add_noise = 1;
+    base_sensor_position_std_dev = 5e-4; 
+    base_sensor_orientation_std_dev = 5e-4; 
+    joint_postion_std_dev = 1e-4;
+    base_lin_vel_std_dev = 1e-4; 
+    base_ang_vel_std_dev = 1e-4; 
+    joint_velocity_std_dev = 1e-4;
     std_dev = [base_sensor_position_std_dev*ones(1,3), ...
         base_sensor_orientation_std_dev*ones(1,3), ...
-        joint_postion_std_dev*ones(1, num_links_without_base), ...
+        joint_postion_std_dev*ones(1, num_joints), ...
         base_lin_vel_std_dev*ones(1,3), ...
         base_ang_vel_std_dev*ones(1,3), ...
-        joint_velocity_std_dev*ones(1, num_links_without_base)];
-    num_states = 12 + 2 * num_links_without_base;
+        joint_velocity_std_dev*ones(1, num_joints)];
+    num_states = 12 + 2 * num_joints;
     noise(num_instants, num_states) = 0;
     for curr_state = 1 : num_states
         noise(:, curr_state) = ...
@@ -74,6 +82,14 @@ function simdata_to_realdata(robot_make, ...
     statevar = statevar(:, 1:num_states) + noise;
     save(strcat(curr_dir, robot_make, '/sim_real_data', '/statevar.dat'),...
         'statevar', '-ascii');
+    
+    plot_data = statevar(:, [1 : 6, 7 + num_joints : 12 + num_joints]);
+    for i = 1 : 12
+        subplot(3, 4, i);
+        plot(plot_data(:, i));
+        legend('Actual', 'Noisy')
+    end
+    
     
     mtvar_modified = zeros(num_instants, 6);
     % Compute momentum in the modified inertia frame
@@ -86,11 +102,12 @@ function simdata_to_realdata(robot_make, ...
         'mtvar_modified', '-ascii');
     
     % Results verification
+    figure();
     plot3(statevar(:, 1), statevar(:, 2), statevar(:, 3), 'r.', 'LineWidth', 3);
     hold on;
     quiver3(statevar(:, 1), statevar(:, 2), statevar(:, 3), ...
-        statevar(:, 7 + num_links_without_base), statevar(:, 8 + num_links_without_base), ...
-        statevar(:, 9 + num_links_without_base), 'g--');
+        statevar(:, 7 + num_joints), statevar(:, 8 + num_joints), ...
+        statevar(:, 9 + num_joints), 'g--');
     legend('Position', 'Velocity');
     title('Sensor kinematic data in the sensor-based inertial frame');
     grid on;
