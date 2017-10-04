@@ -1,11 +1,12 @@
-function minimal_param_vec = compute_minimal_param_vector(decoupled_param_vec, ...
+% Computes minimal parameter vector for generic spatial systems with upto
+% two robotic arms.
+% Outputs: Minimal parameter vector
+function minimal_param_vec = compute_minimal_param_vector(std_param_vec, ...
                                 num_links, not_planar, joint_twist, link_length_DH, ...
                                 joint_offset, parent_link_index, base_sensor_base_frame_position_base_frame)
     
     is_planar = 1 - not_planar;
-    
-    minimal_param_vec = decoupled_param_vec;
-    
+    minimal_param_vec = std_param_vec;
     arm_initial_link_index = find(parent_link_index == 1);
     num_arms = length(arm_initial_link_index);
     arm_terminal_link_index = [arm_initial_link_index(2 : end) - 1, num_links];
@@ -58,7 +59,7 @@ function minimal_param_vec = compute_minimal_param_vector(decoupled_param_vec, .
                 minimal_param_vec([10 * parent_link - 9 : 10 * parent_link - 4, 10 * curr_link_index - 9], :) + ...
                 minimal_param_vec(10 * curr_link_index - 8) * ...
                 [t2;
-                -1];
+                -1];                
         end
     end
     % Remove ld column elements

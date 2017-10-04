@@ -1,3 +1,10 @@
+% Constructs the standard dynamic parameter vector for a generic spatial
+% tree-type system.
+% Inputs: inertia_**_com (n X 1), where n is the number of links in 
+%         the robotic system
+%         link_mass (n X 1)   
+%         link_*_com (n X 1)
+% Outputs: Standard parameter vector (10n X 1)
 function param_vector = construct_dyn_param_vector(...
         inertia_xx_com, inertia_yy_com, inertia_zz_com, inertia_xy_com, inertia_yz_com,...
         inertia_zx_com, link_mass, link_x_com, link_y_com, link_z_com, num_links)

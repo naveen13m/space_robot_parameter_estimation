@@ -1,3 +1,13 @@
+% Computes the inertia matrices in the momentum model from Dmitrov's thesis [Appendix C]
+% Only difference in the modelling lies in assignment of the base frame. In
+% the thesis formulation, the base frame is fixed at the CoM of the base.
+% However, this code assumes a generic position of the base frame
+% Outputs: Base inertia matrix (6 X 6)
+%          Base-manipulator coupling inertia matrix (6 X n) where n is the
+%          number of manipulator links
+%          Coupling anular momentum base inetia matrix (3 X 3)
+%          Coupling angular momentum base-manipulator coupling inertia
+%          matrix (3 X n)
 function [Ib, Ibm, Ib_tilde, Ibm_tilde] = compute_Ib_Ibm(base_pose, joint_position, num_links, ...
                                 joint_twist, link_length_DH, joint_offset, ...
                                 parent_link_index, link_x_com, link_y_com, ...
@@ -103,7 +113,7 @@ function [Ib, Ibm, Ib_tilde, Ibm_tilde] = compute_Ib_Ibm(base_pose, joint_positi
     % Ib assembly
     Ib = [M * eye(3)   , M * r0g_tilde.'; 
           M * r0g_tilde, Hw            ];
-    Ib_tilde = Hw - M * r0g_tilde * r0g_tilde.';
+    Ib_tilde = Hw - M * (r0g_tilde * r0g_tilde.');
     
     % Compute jacobian
     jacob_rot_manip = zeros(3, num_joints, num_joints);
