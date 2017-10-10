@@ -1,0 +1,13 @@
+Robot: 3-link z-planar with 1 RW
+Cost function: CN of Reg mat + 0.2 * inverse signal strength
+Constraints: Position, velocity, acceleration
+Parametrization: 5th harmoninc fourier series with initial velocity 0
+Sensor position: [-0.2; -0.3; 0]
+
+Noise SD:
+- Sensor position: 0.5% of Amp
+- Sensor orientation: 0.5% of Amp
+- Joint position: 1e-5 rad
+- Sensor lin and ang vel: 1e-5 
+- Joint velocity: 1e-5
+Exciting traj inputs: Same as actual

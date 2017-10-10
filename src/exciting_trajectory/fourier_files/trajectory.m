@@ -1,4 +1,4 @@
-function [th_d, dth_d, ddth_d]=trajectory(t, n, tf, tr_par)
+function [th_d, dth_d, ddth_d]=trajectory(t, n, tf, tr_par, num_intervals_each_joint)
     num_params = length(tr_par) / (n - 1);
     tr_par = reshape(tr_par, num_params, n - 1).';
     th_d = zeros(n-1,1); dth_d = zeros(n-1,1); ddth_d = zeros(n-1,1); 
