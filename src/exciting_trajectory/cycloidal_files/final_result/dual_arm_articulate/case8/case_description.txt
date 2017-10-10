@@ -1,0 +1,16 @@
+Robot: Dual arm articulate with 3-mutually orthogonal reaction wheels
+Cost function: CN of Reg mat + 0.1 * inverse signal strength
+Constraints: Position, velocity, acceleration
+Parametrization: Cycloidal with 256 velocity combinations
+Sensor position: [-0.2; -0.3; -0.4]
+Low links proximal link, high freq to distal links
+RW1: 0 -> 3pi, RW2: 0 -> 3pi, RW3: 0 -> 3pi every 1 sec
+Local fmincon optimization
+
+Noise SD:
+- Sensor position: 0.5% of Amp
+- Sensor orientation: 0.5% of Amp
+- Joint position: 1e-5 rad
+- Sensor lin and ang vel: 1e-5 
+- Joint velocity: 1e-5
+Exciting traj inputs: Same as actual
