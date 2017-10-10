@@ -5,8 +5,7 @@ function tr_par_0 = make_tr_params(tr_par_seed, vel_combi_mat)
     
     lnt = length(tr_par_seed);
     start_position = [tr_par_seed(1 : lnt / 2), 0, 0, pi/2, 0];
-    coeff_increment = [tr_par_seed(lnt / 2 + 1 : end), 6 * pi, 6 * pi, 0, 6 * pi];
-    
+    coeff_increment = [tr_par_seed(lnt / 2 + 1 : end), 3*pi, 3*pi, 0, 3*pi];  
     for curr_joint_index = 1 : num_joints
         tr_par_0(1, curr_joint_index) = start_position(curr_joint_index);
         for curr_coeff_index = 2 : num_intervals_each_joint + 1

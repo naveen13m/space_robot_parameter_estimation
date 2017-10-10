@@ -1,24 +1,19 @@
 function [c, ceq] = nonlinear_constraints(tr_par_seed, th_l, th_u, dth_l, dth_u, ddth_l, ddth_u)
     global fileID iter cond_num_reg_mat inverse_signal_strength cost_value mtum_conserved
-    num_links = inputs();
-    num_arm_joints = num_links - 1 - 4;
-%     [~, ti, tf, incr, ~, ~, vel_combi_mat] = initials();
-%     num_intervals_each_joint = size(vel_combi_mat, 1);
-%     all_instants = ti : incr : tf;
-%     num_instants = length(all_instants);
-%     th = zeros(num_joints, num_instants); 
-%     tr_par = make_tr_params(tr_par_seed, vel_combi_mat);
-%     dth = zeros(num_joints, num_instants); 
-%     ddth = zeros(num_joints, num_instants);
-%     for curr_instant_index = 1 : num_instants 
-%         [th(:, curr_instant_index), dth(:, curr_instant_index), ddth(:, curr_instant_index)] = ...
-%             trajectory(all_instants(curr_instant_index), num_links, tf, tr_par, num_intervals_each_joint);
-%     end
-    load joint_data.mat;
+    global joint_position joint_velocity joint_acc
+    [num_links, not_planar] = inputs();
+    is_planar = 1 - not_planar;
+    if is_planar
+        num_rw_joints = 1;       
+    else
+        num_rw_joints = 4;
+    end
+    num_arm_joints = num_links - 1 - num_rw_joints;
+    
+%     load joint_data.mat;
     th = joint_position(:, 1 : num_arm_joints).';
     dth = joint_velocity(:, 1 : num_arm_joints).';
     ddth = joint_acc(:, 1 : num_arm_joints).';
-    delete joint_data.mat
     
     th_comp_min = min(th,[],2);
     th_comp_max = max(th,[],2);
@@ -57,7 +52,7 @@ function [c, ceq] = nonlinear_constraints(tr_par_seed, th_l, th_u, dth_l, dth_u,
     
       
     % Nonlinear inequality
-    if c < 10e-3
+    if c < 1e-2
         fprintf(fileID, 'Nonlinear inequality satisfied = Yes\n');  
     else
         fprintf(fileID, 'Nonlinear inequality satisfied = No\n');  

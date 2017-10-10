@@ -6,12 +6,13 @@ function total_cost = runinv(tr_par_seed, num_intervals_each_joint,...
                         base_sensor_base_frame_position_base_frame, rw_params)
 %   Compute system's statevar
     global iter cond_num_reg_mat inverse_signal_strength cost_value mtum_conserved;
+    global joint_position joint_velocity joint_acc
     iter = iter + 1;
     [yo, ti, tf, incr, rtol, atol, vel_combi_mat]=initials();
     options = odeset('AbsTol', atol, 'RelTol', rtol, 'stats', 'on');
     tr_par = make_tr_params(tr_par_seed, vel_combi_mat);
-    [all_instants, base_state]=ode45(@sys_ode, ti:incr:tf, yo, options, tf,...
-        tr_par, num_intervals_each_joint);
+    [all_instants, base_state]=ode45(@sys_ode, ti:incr:tf, yo, options,...
+                                    tf, tr_par, num_intervals_each_joint);
     [num_links, not_planar] = inputs();
     is_planar = 1 - not_planar;
     num_instants = length(all_instants);
@@ -31,11 +32,11 @@ function total_cost = runinv(tr_par_seed, num_intervals_each_joint,...
             joint_acc(1 : num_joints, curr_instant)] = ...
         trajectory(curr_time, num_joints + 1, tf, tr_par, num_intervals_each_joint);
     end
+%     save joint_data.mat joint_position joint_velocity joint_acc
     joint_position = joint_position.';
     joint_velocity = joint_velocity.';
     joint_acc = joint_acc.';
-    save joint_data.mat joint_position joint_velocity joint_acc
-
+    
     % Convert COM data to sensor frame data and euler rates to body rates
     base_sensor_position = zeros(num_instants, 3);
     base_sensor_lin_velocity = zeros(num_instants, 3);
@@ -76,27 +77,27 @@ function total_cost = runinv(tr_par_seed, num_intervals_each_joint,...
         sensor_signal(:, [3, 4, 5]) = [];
     end
     inverse_signal_strength(iter) = compute_signal_strength(sensor_signal);
-    total_cost = cond_num_reg_mat(iter) + inverse_signal_strength(iter); 
+    total_cost = cond_num_reg_mat(iter) + 0.1 * inverse_signal_strength(iter); 
     cost_value(iter) = total_cost;
     
 % %     verification
-%     param_vec = [2064.06000000000,2012.06000000000,1549.40000000000,-99.7800000000000,-260,-158.340000000000,2230,451,669,1001.50000000000,-3.44500000000002,192.775000000000,7.40000000000000,1.82500000000001,4.60000000000000,100,-4.50000000000000,-36.8660000000000,55.1340000000000,2.25000000000000,1.67000000000000,-6.70000000000000,46,-1.60000000000000,-14.0100000000000,55.0300000000000,-1.62000000000000,5.50000000000000,3.93000000000000,21,12,-36.2250000000000,130.845000000000,0.900000000000000,1.43000000000000,4.31000000000000,87.5000000000000,1.50000000000000,-32.2900000000000,46.4550000000000,0.442500000000000,1.46250000000000,1.73250000000000,40.7500000000000,1.75000000000000,-3.21000000000000,13.8950000000000,1.53750000000000,1.45750000000000,2.10750000000000,8.75000000000000,-1.25000000000000].';
-%     comp_param = pinv(reg_mat) * out_vec;
-%     compare = [param_vec, comp_param]
-%     mtum = reg_mat * param_vec - out_vec;
-%     subplot(2, 3, 1);
-%     plot(mtum(1 : 6 : end));
-%     subplot(2, 3, 2);
-%     plot(mtum(2 : 6 : end));
-%     subplot(2, 3, 3);
-%     plot(mtum(3 : 6 : end));
-%     subplot(2, 3, 4);
-%     plot(mtum(4 : 6 : end));
-%     subplot(2, 3, 5);
-%     plot(mtum(5 : 6 : end));
-%     subplot(2, 3, 6);
-%     plot(mtum(6 : 6 : end));
-%     drawnow;
+    param_vec = [2064.06000000000,2012.06000000000,1549.40000000000,-99.7800000000000,-260,-158.340000000000,2230,451,669,1001.50000000000,-3.44500000000002,192.775000000000,7.40000000000000,1.82500000000001,4.60000000000000,100,-4.50000000000000,-36.8660000000000,55.1340000000000,2.25000000000000,1.67000000000000,-6.70000000000000,46,-1.60000000000000,-14.0100000000000,55.0300000000000,-1.62000000000000,5.50000000000000,3.93000000000000,21,12,-36.2250000000000,130.845000000000,0.900000000000000,1.43000000000000,4.31000000000000,87.5000000000000,1.50000000000000,-32.2900000000000,46.4550000000000,0.442500000000000,1.46250000000000,1.73250000000000,40.7500000000000,1.75000000000000,-3.21000000000000,13.8950000000000,1.53750000000000,1.45750000000000,2.10750000000000,8.75000000000000,-1.25000000000000].';
+    comp_param = pinv(reg_mat) * out_vec;
+    compare = [param_vec, comp_param]
+    mtum = reg_mat * param_vec - out_vec;
+    subplot(2, 3, 1);
+    plot(mtum(1 : 6 : end));
+    subplot(2, 3, 2);
+    plot(mtum(2 : 6 : end));
+    subplot(2, 3, 3);
+    plot(mtum(3 : 6 : end));
+    subplot(2, 3, 4);
+    plot(mtum(4 : 6 : end));
+    subplot(2, 3, 5);
+    plot(mtum(5 : 6 : end));
+    subplot(2, 3, 6);
+    plot(mtum(6 : 6 : end));
+    drawnow;
     mtum_conserved = 1;
 %     if abs(mtum) < 10e-3
 %         mtum_conserved = 1;
