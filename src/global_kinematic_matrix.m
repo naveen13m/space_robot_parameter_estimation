@@ -1,9 +1,11 @@
 function global_kin_mat = global_kinematic_matrix(robot_make,...
                      base_sensor_base_frame_position_base_frame, ...
-                     statevar, mtvar)
+                     statevar, mtvar, to_filter)
                  
     % Filter kinematic data
-    statevar = filter_kin_data(statevar);
+    if to_filter == 1
+        statevar = filter_kin_data(statevar);
+    end
     
     % Load robot structural and dynamic parameter data
     curr_dir = pwd;
