@@ -38,6 +38,34 @@ addpath(location_to_common_funtions_directory) <br />
 
 # Generate case wise regressor matrices
 Generate the configuration files for every case in the designated location <br />
-execute case_wise_reg_mat with the relevant inputs
+execute case_wise_reg_mat with the relevant inputs <br />
 
+# Performance evaluation
+## Obain SPV of estimated MPV
+Obtain the double form of PCM from ./symbolic_derivations/generate_param_coupling_mat <br /> 
+Save the PCM to param_coupling_mat.mat in the location, ./src/performance_evaluation <br />
+Save true MPV, estimated MPV, and true SPV to true_estimated_params.mat in the location, ./src/performance_evaluation <br />
+Run compute_est_spv.m
 
+## Generating validation joint trajectories
+Set the config parameters in make_rand_tr_params.m in ./ReDySim_Floating_base/InvDyn_fourier and run it <br />
+
+## Obtain state and torque data with true and estimated SPV
+Set t_final and incr in ./ReDySim_Floating_base/InvDyn_fourier/initials.m as per the requirement <br />
+
+### With true SPV
+Copy the inputs file which constitute the true SPV to ./ReDySim_Floating_base/InvDyn_fourier <br />
+Goto to Getting the data files
+
+### With estimated SPV
+Copy the inputs.m and input_param_vec.mat file from src/performance_evaluation to ./ReDySim_Floating_base/InvDyn_fourier <br />
+Goto to Getting the data files
+
+### Getting the data files
+After copying the appropriate inputs file to the InvDyn folder, the following steps are to be followed for both true and estimaed SPV <br />
+Execute run_me('/dual_arm_articulate_validation') <br />
+Copy tor.dat and timevar.dat to ./src/performance_evaluation/robot_make <br />
+Set base_sensor_base_com_position_base_com to the value used for estimation <br />
+simdata_to_realdata('/dual_arm_articulate_validation', base_sensor_base_com_position_base_com, 0) <br />
+Copy ./test_case_data/dual_arm_articulate_validation/sim_real_data/statevar.dat to ./src/performance_evaluation/robot_make  <br />
+For .dat files generated with true parameters and estimated, rename them to *_1.dat and *_2.dat respectively
