@@ -1,3 +1,5 @@
+% Segregates the interval trajctory parameters of the given joint at the 
+% given time
 function [thi, thf, curr_time] = get_joint_interval_params(tr_par, ...
                       num_intervals_each_joint, curr_time, Tp, curr_joint)
     persistent first_joint_interval_index

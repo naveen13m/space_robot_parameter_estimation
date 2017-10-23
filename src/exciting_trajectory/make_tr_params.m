@@ -1,3 +1,9 @@
+% Generates the parameters of all the cycloidal trajectories in each
+% interval.
+% Input: Trajectory seed parameters (1 X 2n, n = num of joints of the robotic arms)
+%        Velocity combination matrix (a X b, a = num of intervals, b = num of joints in the system)
+% Output: Parameters of the cycloidal trajectory of all the joints for
+% every interval ((a+1) X b)
 function tr_par_0 = make_tr_params(tr_par_seed, vel_combi_mat)
     [num_intervals_each_joint, num_joints] = size(vel_combi_mat);
     num_params = (num_intervals_each_joint + 1) * num_joints;
@@ -22,25 +28,5 @@ function tr_par_0 = make_tr_params(tr_par_seed, vel_combi_mat)
         end
     end
     tr_par_0 = reshape(tr_par_0, 1, num_params);
-%     figure();
-%     k = 180 / pi;
-%     subplot(3, 3, 1)
-%     plot(tr_par_0(1 : 33) * k)
-%     subplot(3, 3, 2)
-%     plot(tr_par_0(34 : 66) * k)
-%     subplot(3, 3, 3)
-%     plot(tr_par_0(67 : 99) * k)
-%     subplot(3, 3, 4)
-%     plot(tr_par_0(100 : 132) * k)
-%     subplot(3, 3, 5)
-%     plot(tr_par_0(133 : 165) * k)
-%     subplot(3, 3, 6)
-%     plot(tr_par_0(166 : 198) * k)
-%     subplot(3, 3, 7)
-%     plot(tr_par_0(199 : 231) * k)
-%     subplot(3, 3, 8)
-%     plot(tr_par_0(232 : 264) * k)
-%     subplot(3, 3, 9)
-%     plot(tr_par_0(265 : 297) * k)
 end
 

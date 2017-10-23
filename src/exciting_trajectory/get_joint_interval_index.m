@@ -1,3 +1,5 @@
+% Computes the interval index based on the current time and the time period
+% of the intervals.
 function interval_index = get_joint_interval_index(curr_time, time_params)
     if curr_time > sum(time_params)
         error('Current time exceeds total time!');
