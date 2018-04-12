@@ -19,33 +19,36 @@ al=[1; 1; 1; 1; 1; 1; 1];
 alt=[0.5; 1; 1; 1; 1; 1; 1];
 
 %ENTER VECTOR dm
-dx=[  0   0.6    0.4    0.7   0.55   0.45   0.6];
-dy=[  0   0.05  -0.04   0.4   0.04   0.05  -0.5];
-dz=[  0  -0.07  -0.05   0.3  -0.04   0.05  -0.35];
+dx=[  0   0.4    0.7    0.5   0.4   0.3   0.5];
+dy=[  0   0      0      0.2   0     0     0.2];
+dz=[  0   0      0      0.1   0   0       0.2];
+% dx=[  0   0.6    0.4    0.7   0.55   0.45   0.35];
+% dy=[  0   0      0      0.4     0      0      0];
+% dz=[  0   0      0      0.3     0      0      0];
 
 %MASS
-m=[2000; 50; 40; 30; 50; 35; 60];
+m=[1500; 30; 20; 50; 40; 25; 30];
 % g=[0 ; 9.81; 0];
  g=[0 ; 0; 0];
 
 %MOMENT OF INERTIA
 Icxx=zeros(n,1);Icyy=zeros(n,1);Iczz=zeros(n,1); % Initialization 
 Icxy=zeros(n,1);Icyz=zeros(n,1);Iczx=zeros(n,1); % Initialization 
-Icxx(1)=1200;  Icyy(1)=1200; Iczz(1)=1200;
-Icxx(2)=3.1;   Icyy(2)=1.89;  Iczz(2)=20.51;
-Icxx(3)=1.15;   Icyy(3)=1.68;  Iczz(3)=18.67;
-Icxx(4)=24.45;   Icyy(4)=28.56;  Iczz(4)=35.53;
-Icxx(5)=1.85;   Icyy(5)=1.62;  Iczz(5)=17.05;
-Icxx(6)=2.55;   Icyy(6)=1.84;  Iczz(6)=14.28;
-Icxx(7)=12.24;   Icyy(7)=31.45;  Iczz(7)=23.77;
+Icxx(1)=1000;  Icyy(1)=1000; Iczz(1)=1000;
+Icxx(2)=2;   Icyy(2)=1;  Iczz(2)=10;
+Icxx(3)=1;   Icyy(3)=1;  Iczz(3)=28;
+Icxx(4)=14;   Icyy(4)=20;  Iczz(4)=20;
+Icxx(5)=1;   Icyy(5)=2;  Iczz(5)=9;
+Icxx(6)=1;   Icyy(6)=1.5;  Iczz(6)=19;
+Icxx(7)=6;   Icyy(7)=20;  Iczz(7)=35;
 
-Icxy(1)=35.52;  Icyz(1)=40.45; Iczx(1)=45.71;
-Icxy(2)=1.9;   Icyz(2)=3.65;  Iczx(2)=3.9;
-Icxy(3)=0.61;   Icyz(3)=1.75;  Iczx(3)=1.5;
-Icxy(4)=9.78;   Icyz(4)=9.1;  Iczx(4)=10.23;
-Icxy(5)=1.5;   Icyz(5)=2.25;  Iczx(5)=3.71;
-Icxy(6)=2.9;   Icyz(6)=1.55;  Iczx(6)=1.27;
-Icxy(7)=9.1;   Icyz(7)=8.52;  Iczx(7)=8.67;
+Icxy(1)=25;  Icyz(1)=20.45; Iczx(1)=65.71;
+Icxy(2)=0.9;   Icyz(2)=2.65;  Iczx(2)=2.9;
+Icxy(3)=1.2;   Icyz(3)=2.75;  Iczx(3)=2.5;
+Icxy(4)=4.6;   Icyz(4)=3.1;  Iczx(4)=1.23;
+Icxy(5)=1;   Icyz(5)=1.25;  Iczx(5)=6.71;
+Icxy(6)=1.5;   Icyz(6)=0.55;  Iczx(6)=4.27;
+Icxy(7)=15;   Icyz(7)=18.52;  Iczx(7)=4.67;
 
 if add_rw
 	n = n + 4;
